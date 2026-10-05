@@ -5,16 +5,14 @@ async function hs(s,p){try{const b=await crypto.subtle.digest('SHA-256',new Text
 const mk=h=>{const d=document.createElement('div');d.innerHTML=h.trim();return d.firstElementChild},jg=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
 function enterA(n,st){st?localStorage.setItem('alpine-state',st):localStorage.removeItem('alpine-state');localStorage.setItem('ap-session',n);location.reload()}
 /* ---- login gate ---- */
-const crown='<svg viewBox="0 0 64 64" width="56" style="display:block;margin:0 auto"><path d="M7 50L3 18l16 14 13-23 13 23 16-14-4 32z" fill="#d4af37"/><rect x="7" y="50" width="50" height="9" rx="2" fill="#d4af37"/></svg>';
-function gate(){const g=mk(`<div class="modal open gate" id="gate"><div class="panel">${crown}<div class="sc2">Bienvenue</div><h3 style="margin:0">Casino de Madring</h3><div class="orn"></div><input id="gu" placeholder="Username" maxlength="12" autocomplete="username"><input id="gp" type="password" placeholder="Password" autocomplete="current-password"><div class="err" id="ge"></div><div class="row"><button class="gold" id="gi">Log in</button><button id="gr">Create account</button></div><button id="gg">Continue as guest</button><p class="cap">Chips only, no real money. Accounts are stored in this browser.</p></div></div>`);document.body.appendChild(g);
+const crown='<svg viewBox="0 0 64 64" style="width:70px;margin:auto"><defs><linearGradient id="gd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3a8"/><stop offset=".5" stop-color="#d4af37"/><stop offset="1" stop-color="#8a6a12"/></linearGradient></defs><path d="M7 50L3 18l16 14 13-23 13 23 16-14-4 32z" fill="url(#gd)" stroke="#8a6a12" stroke-width="2"/><rect x="7" y="50" width="50" height="9" rx="2" fill="url(#gd)" stroke="#8a6a12" stroke-width="2"/><circle cx="3" cy="16" r="3.5" fill="#ff4d6d"/><circle cx="32" cy="7" r="4" fill="#4cc9f0"/><circle cx="61" cy="16" r="3.5" fill="#3ddc97"/></svg>';
+function gate(){const g=mk(`<div class="modal open gate" id="gate"><div class="panel">${crown}<h2>Casino Alpine Pro</h2><small class="cap">Play with virtual chips. Start with 1,000 chips, free.</small><input id="gu" placeholder="Username" maxlength="12" autocomplete="username"><input id="gp" type="password" placeholder="Password" autocomplete="current-password"><div class="err" id="ge"></div><button class="gold" id="gi">Log in</button><button id="gr">Create account</button></div></div>`);document.body.appendChild(g);
 const err=t=>$('ge').textContent=t,val=()=>[$('gu').value.trim(),$('gp').value];
 $('gi').onclick=async()=>{const[n,p]=val(),a=jg(ak(n));if(!a||await hs(a.s,p)!=a.h)return err('Wrong username or password.');enterA(a.n,localStorage.getItem(pk(n)))};
 $('gr').onclick=async()=>{const[n,p]=val();if(!/^[A-Za-z0-9_]{3,12}$/.test(n))return err('Username: 3-12 letters, numbers or _.');if(p.length<4)return err('Password needs 4+ characters.');if(jg(ak(n)))return err('That username is taken.');
   const s=Math.random().toString(36).slice(2);localStorage.setItem(ak(n),JSON.stringify({n,s,h:await hs(s,p)}));let snap=null;if(!localStorage.getItem('ap-claimed')){snap=localStorage.getItem('alpine-state');localStorage.setItem('ap-claimed','1')}localStorage.setItem(pk(n),snap||'');enterA(n,snap)};
-$('gg').onclick=()=>{try{sessionStorage.setItem('ap-guest','1')}catch(e){}g.remove()};
 $('gp').onkeydown=e=>{if(e.key=='Enter')$('gi').click()}}
-let seen=0;try{seen=sessionStorage.getItem('ap-guest')}catch(e){}
-if(!who()&&!seen)gate();
+if(!who())gate();
 /* ---- bet log ---- */
 const L=()=>G.lg||(G.lg={hist:[bal],log:[],bets:0,wins:0,wag:0,won:0,big:0,gm:{}});L();
 let acc={wag:0,won:0};const _sb=setBal;setBal=function(d){d<0?acc.wag-=d:acc.won+=d;_sb(d)};
