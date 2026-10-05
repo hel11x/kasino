@@ -84,7 +84,7 @@ $('hlcash').onclick=()=>{if(!H||!H.on||H.k<1)return;H.on=0;const p=Math.round(H.
 
 /* ---------- LUCKY WHEEL (free spin every 10 minutes) ---------- */
 const WP=[[25,20],[50,22],[100,22],[150,14],[250,10],[500,7],[1000,3.5],[2500,1.5]];let wrot=0,wsp=0;
-room('wheel','Lucky Wheel',`<p>One free spin every 10 minutes. No bet needed.</p><div class="wrap"><i class="wptr">▼</i>
+room('luckywheel','Lucky Wheel',`<p>One free spin every 10 minutes. No bet needed.</p><div class="wrap"><i class="wptr">▼</i>
 <div class="wh" id="whl">${WP.map((p,i)=>`<span style="--a:${i*45+22.5}deg">${p[0]}</span>`).join('')}</div></div>
 <div class="msg" id="wcd" style="text-align:center"></div><div class="row" style="justify-content:center"><button class="gold" id="wspin">Spin</button></div>`);
 const wleft=()=>Math.max(0,6e5-(now()-(G.wheelAt||0)));
@@ -143,7 +143,7 @@ function xr(){const t=$('xm-t'),b=$('xm-b'),u=who(),form=`<div class="row"><inpu
     else b.innerHTML=`<p>You are playing as a guest. Create an account to keep a named profile and receive messages. Accounts live in this browser only (no server), so they are for fun, not real security.</p>${form}<p class="cap">Your first new account keeps your current guest progress.</p>`}}
 
 /* ---------- lobby: Arcade & Club strip ---------- */
-const V=[['mines','Mines','💣💎','Find gems, dodge mines'],['crash','Crash','🚀','Cash out before it crashes'],['hilo','Higher or Lower','🃏','Chain your guesses'],['wheel','Lucky Wheel','🎡','Free spin every 10 minutes','wbadge'],
+const V=[['mines','Mines','💣💎','Find gems, dodge mines'],['crash','Crash','🚀','Cash out before it crashes'],['hilo','Higher or Lower','🃏','Chain your guesses'],['luckywheel','Lucky Wheel','🎡','Free spin every 10 minutes','wbadge'],
 ['tro','Trophies','🏆','Achievements with rewards'],['msg','Messages','✉️','Chat with other players','mbadge'],['prof','Profile','👤','Log in or create an account']];
 $('lobby').appendChild(mk(`<div class="arcade"><div class="arch"><b>Arcade &amp; Club</b><span id="xinc"></span></div><div class="avs">${V.map(([k,n,e,d,bd])=>`<div class="venue xv" data-v="${k}" tabindex="0" role="button"><b class="sign">${n}</b>${bd?`<span class="badge" id="${bd}"></span>`:''}<div class="art">${e}</div><small>${d}</small></div>`).join('')}</div></div>`));
 const X={tro:()=>xm('tro'),msg:()=>xm('msg'),prof:()=>xm('prof')},lob=e=>{const v=e.target.closest('[data-v]'),k=v&&v.dataset.v;X[k]?X[k]():go(e)};

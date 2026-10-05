@@ -1,0 +1,57 @@
+/* Casino Alpine Pro - extras.css: shared room theme, casino chips, arcade games, Lucky Wheel, multiplayer table */
+main section{position:relative;background:radial-gradient(ellipse at 50% 0,#1d7048,#0b3524 55%,#06170f)}
+main section::before{content:'';position:absolute;left:18px;right:18px;top:4px;height:6px;background:radial-gradient(circle,#ffe9a0 0 2px,#0000 3px) 0 0/16px 6px;animation:chase 1s steps(2) infinite}
+section>h2{text-align:center;font-family:'Cinzel',serif;color:#ffd76a;text-shadow:0 0 8px #ffb300,0 0 22px #f80;letter-spacing:.06em}
+.back{border-radius:30px;background:linear-gradient(#2b1608,#14080a);color:#ffd76a}
+section p{text-align:center}
+/* real casino chips: edge spots, inlay ring, embossed face */
+.chip{--c:#2b5fb5;--c2:#17376e;position:relative;isolation:isolate;display:inline-grid;place-items:center;width:62px;height:62px;border:0!important;border-radius:50%;padding:0;font:800 17px 'Cinzel',serif;font-style:normal;color:#fff!important;text-shadow:0 1px 2px #000,0 0 6px #0008;background:none!important;box-shadow:0 2px 0 var(--c2),0 4px 0 #0009,0 9px 10px #000b;transition:transform .15s,filter .15s}
+.chip[data-v="50"]{--c:#c0302f;--c2:#6e1414}.chip[data-v="100"]{--c:#2a2c2f;--c2:#08090a}.chip[data-v="500"]{--c:#7b43b8;--c2:#41206a}
+.chip::before,.chip::after{content:'';position:absolute;border-radius:50%}
+.chip::before{inset:0;z-index:-2;background:radial-gradient(circle,#0000 66%,#0004 100%),repeating-conic-gradient(#f6f0de 0 11deg,var(--c) 11deg 45deg)}
+.chip::after{inset:8px;z-index:-1;border:2px dashed #ffffffd0;background:radial-gradient(circle at 35% 28%,color-mix(in srgb,var(--c) 60%,#fff),var(--c) 55%,var(--c2));box-shadow:0 0 0 2px var(--c),inset 0 3px 5px #fff5,inset 0 -5px 8px #0007}
+.chip:hover:not(:disabled){transform:translateY(-4px);filter:brightness(1.12)}
+.chip.sel{outline:0;transform:translateY(-6px);filter:drop-shadow(0 0 8px #ffd76a) brightness(1.1)}
+.chip.mini{width:34px;height:34px;font-size:11px;box-shadow:0 1px 0 var(--c2),0 3px 0 #0009,0 5px 6px #000b}.chip.mini::after{inset:5px;border-width:1px}
+.chips{gap:14px;padding:8px 6px 14px}
+.stake{width:28px;height:28px;display:grid;place-items:center;padding:0;line-height:1;right:-6px;top:-9px;font:800 10px 'Outfit',sans-serif;color:#fff;border:0;background:radial-gradient(circle,#c0302f 0 52%,#f6f0de 54% 62%,#c0302f 64%);box-shadow:0 0 0 1px #0008,0 3px 5px #000}
+/* arcade strip in the lobby */
+.arcade{margin-top:16px;padding:16px;border-radius:24px;border:9px solid #2b1608;outline:2px solid var(--brass);background:radial-gradient(ellipse at 50% 0,#6a1426,#3a0a14);box-shadow:inset 0 0 80px #000b,0 20px 50px #000}
+.arch{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px;font:800 20px 'Cinzel',serif;color:#ffd76a;text-shadow:0 0 10px #ffb300}.arch span{font:500 14px 'Outfit';color:#e3d7b4;text-shadow:none}
+.avs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.xv{min-height:160px;background:radial-gradient(#3a1262,#12041f)}.xv .art{font-size:40px}
+/* mines */
+.mg{display:grid;grid-template-columns:repeat(5,minmax(0,70px));gap:8px;justify-content:center;padding:14px;margin:0 auto;width:fit-content;max-width:100%;border-radius:14px;background:#06170f;border:6px solid #3b2410;outline:2px solid var(--brass)}
+.mg button{aspect-ratio:1;padding:0;font-size:30px;border-radius:10px;background:radial-gradient(circle at 35% 30%,#2aa06a,#0a3f28);border:2px solid #c9a24b;box-shadow:inset 0 -4px 8px #0008}
+.mg button.gem{background:radial-gradient(#4fc3f7,#0b4a6e);opacity:1}.mg button.bomb{background:radial-gradient(#d33,#4a0b0b);opacity:1}
+.row label{display:flex;align-items:center;gap:6px}select{font:500 16px 'Outfit';padding:9px;border-radius:8px;background:#0a1a14;color:var(--ivory);border:1px solid var(--brass)}
+/* crash */
+.sky{position:relative;height:250px;border-radius:14px;overflow:hidden;border:6px solid #3b2410;outline:2px solid var(--brass);background:radial-gradient(circle at 20% 20%,#fff 0 1px,#0000 2px) 0 0/60px 60px,linear-gradient(#050a24,#1a1450 70%,#5a2a6a)}
+.rk{position:absolute;left:4%;bottom:6%;font-size:42px;font-style:normal;filter:drop-shadow(0 0 12px #ffb300)}
+.cx{text-align:center;font:800 54px 'Cinzel',serif;color:#ffd76a;text-shadow:0 0 16px #ffb300;margin:10px 0}.cx.bust{color:#ff6a5a;text-shadow:0 0 16px #f00}
+.chs{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}.chs span{padding:3px 10px;border-radius:12px;font-weight:600;font-size:13px}.chs .lo{background:#7a1a1a}.chs .hi{background:#1a6a3a}
+/* higher / lower */
+#hilo .hand{justify-content:center;min-height:140px}
+/* lucky wheel */
+#luckywheel{background:radial-gradient(ellipse at 50% 0,#4a1a6e,#14061f 70%)}
+.wrap{--r:calc(min(360px,84vw)*.33);position:relative;width:min(360px,84vw);aspect-ratio:1;margin:26px auto}
+.wh{position:absolute;inset:0;border-radius:50%;border:10px solid #3b2410;box-shadow:0 0 0 3px #c9a24b,0 0 0 8px #2a1608,0 20px 40px #000,inset 0 0 30px #000;transition:transform 4.6s cubic-bezier(.12,.7,.1,1);
+ background:conic-gradient(#a3202f 0 45deg,#111 0 90deg,#0a7a3c 0 135deg,#a3202f 0 180deg,#111 0 225deg,#0a7a3c 0 270deg,#a3202f 0 315deg,#7b43b8 0 360deg)}
+.wh span{position:absolute;left:50%;top:50%;font:800 clamp(16px,4.6vw,24px) 'Cinzel',serif;color:#fff;text-shadow:0 2px 3px #000;transform:translate(-50%,-50%) rotate(var(--a)) translateY(calc(var(--r)*-1))}
+.wrap::after{content:'';position:absolute;inset:38%;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f3e2a0,#6a4a14);box-shadow:0 0 0 4px #2a1608,0 4px 10px #000;pointer-events:none}
+.wptr{position:absolute;left:50%;top:-22px;transform:translateX(-50%);font-style:normal;font-size:40px;line-height:1;color:#ffd76a;z-index:3;filter:drop-shadow(0 3px 3px #000)}
+/* trophies and messages */
+.tro:not(.got){opacity:.55}.tro.got{border-color:#ffd76a;box-shadow:0 0 18px #ffd76a55}
+.msgs{list-style:none;margin:10px 0 0;padding:0}.msgs li{padding:10px;border:1px solid #c9a24b44;border-radius:10px;margin-bottom:8px;background:#0005}.msgs li.new{border-color:#5fd38d}.msgs p{margin:4px 0;text-align:left}
+/* multiplayer blackjack */
+#mp-ds{text-align:center;font-size:19px}
+.seats{grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.seat{position:relative;background:linear-gradient(#0009,#0005);border:2px solid #c9a24b66;border-radius:16px;padding:12px;transition:.25s}
+.seat.me{border-color:#ffd76a;box-shadow:0 0 18px #ffd76a44}.seat.turn{box-shadow:0 0 0 3px #5fd38d,0 0 26px #5fd38d99}
+.seat h4{font:800 17px 'Cinzel',serif;color:#ffd76a}
+.pills{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:4px 14px 4px 5px;border-radius:30px;background:#000b;border:1px solid #c9a24b;font:700 16px 'Outfit'}
+.pill:not(.bet){padding:5px 14px}.pill.tot{font-size:19px;color:#fff;background:#14523d;border-color:#7dffb0}.pill.tot.x{background:#7a1a1a;border-color:#ff8a78}
+.banner{margin-top:10px;padding:8px;border-radius:10px;font:800 19px 'Cinzel',serif;letter-spacing:.06em;text-align:center;animation:pop .35s}
+.banner.win{background:linear-gradient(#2ecc71,#17803f);color:#04230f;box-shadow:0 0 20px #2ecc7188}.banner.lose{background:linear-gradient(#e5604d,#8a1a2b);color:#fff}.banner.push{background:linear-gradient(#e3bf6a,#9a7a22);color:#201700}
+#mp-msg{font-size:22px;text-align:center}

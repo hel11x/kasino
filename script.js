@@ -165,7 +165,7 @@ let pick=-1,racing=false;
 function buildTrack(){$('track').innerHTML=HS.map((h,i)=>`<div class="lane" style="--c:${COL[i]}"><span class="bib">${i+1}</span><span class="nm">${h[0]}</span><span class="h">🐎</span></div>`).join('')+'';$('track').lastChild&&($('track').style.position='relative');
   if(!$('track').querySelector('.finish')){const f=document.createElement('div');f.className='finish';$('track').appendChild(f)}}
 buildTrack();
-$('stand').innerHTML=Array.from({length:22},(_,i)=>`<span style="animation-delay:${(i%7)*.12}s">${['🙌','👒','🎩','🧢','🙋'][i%5]}</span>`).join('');
+$('crowd').innerHTML=Array.from({length:22},(_,i)=>`<span style="animation-delay:${(i%7)*.12}s">${['🙌','👒','🎩','🧢','🙋'][i%5]}</span>`).join('');
 $('odds').innerHTML=HS.map((h,i)=>`<button data-i="${i}"><span>${i+1}. ${h[0]}</span><span>${h[1]}:1</span></button>`).join('');
 $('odds').onclick=e=>{const b=e.target.closest('button');if(!b||racing)return;pick=+b.dataset.i;[...$('odds').children].forEach(x=>x.classList.toggle('sel',x==b));$('go').disabled=false;$('hmsg').textContent='Betting on: '+HS[pick][0]};
 $('go').onclick=()=>{if(racing||pick<0)return;if(bal<sel)return $('hmsg').textContent='Not enough chips. Visit the bank.';
@@ -206,11 +206,14 @@ function mpRender(){if(!MS)return;const me=mine();
   if(!me){toast('The table is full or a round is in progress.','warn');return mpLeave()}
   const P=MS.players,turn=MS.ph=='play'&&P[MS.turn]==me;
   $('mp-d').innerHTML=MS.dealer.map((c,i)=>cardEl(c,MS.hide&&i==1)).join('');
-  $('mp-seats').innerHTML=P.map((p,i)=>`<div class="seat${p.id==myId?' me':''}${MS.ph=='play'&&MS.turn==i?' turn':''}"><h4>${esc(p.name)}${p.id=='host'?' ♛':''}</h4><div class="hand">${p.hand.map(c=>cardEl(c)).join('')}</div><div class="st">${p.bet?'Bet '+p.bet:'No bet'}${p.hand.length?' · '+val(p.hand):''}${p.st=='bust'?' · Bust':p.st=='bj'?' · Blackjack':''}${p.res!=null?(p.res>1?' · Win':p.res==1?' · Push':' · Lose'):''}</div></div>`).join('');
+  $('mp-ds').textContent=MS.dealer.length?(MS.hide?'Dealer shows: '+val([MS.dealer[0]]):'Dealer total: '+val(MS.dealer)+(val(MS.dealer)>21?' · BUST':'')):'';
+  $('mp-seats').innerHTML=P.map((p,i)=>{const v=val(p.hand),amt=p.res!=null?Math.round(p.bet*(p.res-1)):0,
+    ban=p.res!=null?(p.st=='bust'?['lose','BUST −'+p.bet]:p.res>1?['win',(p.st=='bj'?'BLACKJACK +':'WIN +')+amt]:p.res==1?['push','PUSH']:['lose','LOSE −'+p.bet]):p.st=='bust'?['lose','BUST']:p.st=='bj'?['win','BLACKJACK']:null;
+    return `<div class="seat${p.id==myId?' me':''}${MS.ph=='play'&&MS.turn==i?' turn':''}"><h4>${esc(p.name)}${p.id=='host'?' ♛':''}${p.id==myId?' (you)':''}</h4><div class="hand">${p.hand.map(c=>cardEl(c)).join('')}</div><div class="pills">${p.bet?`<span class="pill bet"><i class="chip mini" data-v="${p.bet}">${p.bet}</i>Bet ${p.bet}</span>`:'<span class="pill">No bet</span>'}${p.hand.length?`<span class="pill tot${v>21?' x':''}">Total ${v}</span>`:''}</div>${ban?`<div class="banner ${ban[0]}">${ban[1]}</div>`:''}</div>`}).join('');
   $('mp-n').textContent=P.length+' / 4 players';
   $('mp-bet').disabled=!(MS.ph=='bet'&&!me.bet);$('mp-hit').disabled=$('mp-stand').disabled=!turn;
   $('mp-deal').hidden=!(isHost&&MS.ph=='bet');$('mp-deal').disabled=!P.some(p=>p.bet);$('mp-next').hidden=!(isHost&&MS.ph=='done');
-  $('mp-msg').textContent=MS.ph=='bet'?(me.bet?(isHost?'Deal when everyone is ready.':'Waiting for the host to deal…'):'Choose a chip and place your bet.'):MS.ph=='play'?(turn?'Your move.':'Waiting for '+(P[MS.turn]?P[MS.turn].name:'the dealer')+'…'):'Round over.';
+  $('mp-msg').textContent=MS.ph=='bet'?(me.bet?(isHost?'Deal when everyone is ready.':'Waiting for the host to deal…'):'Choose a chip and place your bet.'):MS.ph=='play'?(turn?'Your move.':'Waiting for '+(P[MS.turn]?P[MS.turn].name:'the dealer')+'…'):(me.res==null?'Round over.':me.res>1?'You win +'+Math.round(me.bet*(me.res-1))+' chips!':me.res==1?'Push – your bet is returned.':'You lose −'+me.bet+' chips.');
   if(MS.ph=='done'&&me.bet&&settled!=MS.rid){settled=MS.rid;const rw=Math.round(me.bet*me.res);if(rw)setBal(rw);if(me.res>1)ev('bjwin');tick()}}
 $('mp-host').onclick=()=>{if(!window.Peer)return stt('Multiplayer needs an internet connection (PeerJS did not load).');
   const code=Array.from({length:4},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[rnd(24)]).join(''),name=$('mp-name').value.trim()||'Host';stt('Opening your table…');
