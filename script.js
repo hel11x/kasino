@@ -39,7 +39,7 @@ function checkBroke(){const btn=$('openbank');
 function tick(){rounds++;ev('round');addXp(10);if(G.buff.r>0&&!--G.buff.r)toast('Your drink wore off.');
   if(rounds%INT_EVERY==0&&loans.length){let t=0;loans.forEach(l=>{const i=Math.max(1,Math.round(l.owed*l.r/100));l.owed+=i;t+=i});log('Interest charged',-t);toast(`The bank charged ${fmt(t)} chips in interest`,'warn')}
   render();save();checkBroke()}
-const QT=[['rwin','Spin Doctor','Win {n} roulette spin(s)',3,300],['bjwin','Card Shark','Win {n} blackjack hand(s)',2,300],['swin','Lucky Streak','Hit {n} winning slot spin(s)',2,250],['hwin','Day at the Races','Back {n} winning horse(s)',1,400],['round','Regular','Play {n} rounds anywhere',10,350],['repaid','Clean Slate','Fully repay {n} loan(s)',1,500],['buy','Window Shopper','Buy {n} item(s) at the boutique or bar',1,150]];
+const QT=[['rwin','Spin Doctor','Win {n} roulette spin(s)',3,300],['bjwin','Card Shark','Win {n} blackjack hand(s)',2,300],['swin','Lucky Streak','Hit {n} winning slot spin(s)',2,250],['hwin','Pole Position','Back {n} winning F1 car(s)',1,400],['round','Regular','Play {n} rounds anywhere',10,350],['repaid','Clean Slate','Fully repay {n} loan(s)',1,500],['buy','Window Shopper','Buy {n} item(s) at the boutique or bar',1,150]];
 const SHOP=[{id:'foot',n:"Rabbit's Foot",e:'🐇',p:350,d:'+5% on every payout',luck:.05},{id:'clover',n:'Four-Leaf Clover',e:'🍀',p:900,d:'+10% on every payout',luck:.1},{id:'dice',n:'Golden Dice',e:'🎲',p:2200,d:'+15% on every payout',luck:.15},{id:'card',n:'Platinum Card',e:'💳',p:1200,d:'+2,000 bank credit limit'},{id:'tux',n:'Tuxedo',e:'🤵',p:500,d:'Look the part',av:1},{id:'gown',n:'Evening Gown',e:'💃',p:500,d:'Look the part',av:1},{id:'crown',n:'Crown',e:'👑',p:3000,d:'High-roller status',av:1}];
 const BAR=[{id:'esp',n:'Espresso',e:'☕',p:30,d:'2× XP for 5 rounds',buff:{r:5,l:0,x:2}},{id:'mart',n:'Lucky Martini',e:'🍸',p:80,d:'+20% payouts for 5 rounds',buff:{r:5,l:.2,x:1}},{id:'champ',n:'Champagne',e:'🍾',p:250,d:'+30% payouts and 2× XP for 3 rounds',buff:{r:3,l:.3,x:2}}];
 const has=id=>G.owned.includes(id),qd=q=>QT.find(x=>x[0]==q.k),need=q=>qd(q)[3]*q.m,luck=()=>SHOP.reduce((a,i)=>a+(has(i.id)&&i.luck||0),0)+(G.buff.r>0?G.buff.l:0);
@@ -160,16 +160,16 @@ $('pull').onclick=async()=>{if(busy)return;if(bal<sel)return $('smsg').textConte
   if(res[0]==res[1]&&res[1]==res[2])m=SYM[res[0]][1];else if(res.filter(x=>x==0).length>=2)m=2;
   if(m){setBal(bet*m);ev('swin');document.querySelectorAll('.reel').forEach(e=>e.classList.add('win'));$('smsg').textContent=`You win ${bet*m} chips (${m}×)!`}else $('smsg').textContent='No win this time. Try again.';busy=false;tick()};
 /* ===== DOSTIHY ===== */
-const COL=['#d93636','#2f6fe0','#f2c230','#2fb36b','#9b4de0','#f08a24'];const HS=[['Silver Bolt',2.5,1.0],['River Gale',3,.96],['Golden Horseshoe',4,.92],['Black Orchid',5,.88],['Old Earl',8,.8],['Little Longshot',12,.72]];
+const COL=['#1e41ff','#dc0000','#00d2be','#ff8000','#006f62','#0093cc'];const HS=[['Red Bull Racing',2.5,1.0],['Scuderia Ferrari',3,.96],['Mercedes-AMG',4,.92],['McLaren',5,.88],['Aston Martin',8,.8],['Alpine F1',12,.72]];
 let pick=-1,racing=false;
-function buildTrack(){$('track').innerHTML=HS.map((h,i)=>`<div class="lane" style="--c:${COL[i]}"><span class="bib">${i+1}</span><span class="nm">${h[0]}</span><span class="h">🐎</span></div>`).join('')+'';$('track').lastChild&&($('track').style.position='relative');
+function buildTrack(){$('track').innerHTML=HS.map((h,i)=>`<div class="lane" style="--c:${COL[i]}"><span class="bib">${i+1}</span><span class="nm">${h[0]}</span><span class="h car"></span></div>`).join('')+'';$('track').lastChild&&($('track').style.position='relative');
   if(!$('track').querySelector('.finish')){const f=document.createElement('div');f.className='finish';$('track').appendChild(f)}}
 buildTrack();
-$('crowd').innerHTML=Array.from({length:22},(_,i)=>`<span style="animation-delay:${(i%7)*.12}s">${['🙌','👒','🎩','🧢','🙋'][i%5]}</span>`).join('');
+$('crowd').innerHTML=Array.from({length:22},(_,i)=>`<span style="animation-delay:${(i%7)*.12}s">${['🏁','🙌','📸','🎉','🙋'][i%5]}</span>`).join('');
 $('odds').innerHTML=HS.map((h,i)=>`<button data-i="${i}"><span>${i+1}. ${h[0]}</span><span>${h[1]}:1</span></button>`).join('');
 $('odds').onclick=e=>{const b=e.target.closest('button');if(!b||racing)return;pick=+b.dataset.i;[...$('odds').children].forEach(x=>x.classList.toggle('sel',x==b));$('go').disabled=false;$('hmsg').textContent='Betting on: '+HS[pick][0]};
 $('go').onclick=()=>{if(racing||pick<0)return;if(bal<sel)return $('hmsg').textContent='Not enough chips. Visit the bank.';
-  racing=true;$('track').classList.add('racing');const bet=sel;setBal(-bet);$('go').disabled=true;$('hmsg').textContent='And they\'re off!';
+  racing=true;$('track').classList.add('racing');const bet=sel;setBal(-bet);$('go').disabled=true;$('hmsg').textContent='Lights out and away we go!';
   const hs=[...document.querySelectorAll('.h')],w=$('track').clientWidth-70,pos=HS.map(()=>0);let done=false;
   (function f(){HS.forEach((h,i)=>pos[i]+=(Math.random()*1.1+.2)*h[2]*.9);
     hs.forEach((e,i)=>e.style.left=Math.min(pos[i]/100,1)*w+'px');
@@ -177,7 +177,7 @@ $('go').onclick=()=>{if(racing||pick<0)return;if(bal<sel)return $('hmsg').textCo
     if(lead<0)return requestAnimationFrame(f);
     const win=pos.indexOf(Math.max(...pos));
     if(win==pick){ev('hwin');setBal(Math.round(bet*HS[pick][1]));$('hmsg').textContent=`Winner: ${HS[win][0]}. You win ${Math.round(bet*HS[pick][1])} chips!`}
-    else $('hmsg').textContent=`Winner: ${HS[win][0]}. Your horse did not place. Bet lost.`;
+    else $('hmsg').textContent=`Winner: ${HS[win][0]}. Your car did not win. Bet lost.`;
     racing=false;$('track').classList.remove('racing');$('go').disabled=false;tick()})()};
 
 /* ===== MULTIPLAYER BLACKJACK (PeerJS, host-authoritative, joined by a 4-letter code) ===== */

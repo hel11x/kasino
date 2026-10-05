@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Casino Alpine Pro</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Cormorant+Garamond:wght@600;700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="extras.css">
 </head>
@@ -14,6 +14,7 @@
   <div class="me"><span class="av" id="avatar">🙂</span><div class="lv"><b id="lvl">Level 1</b><div class="xpbar"><div id="xpf"></div></div><small id="luck"></small></div></div>
   <div class="wallet"><div class="bank"><i class="pchip"></i><div class="bv"><span>Chips</span><b id="bal">1000</b></div></div><div class="bank" id="debtbox"><i class="note">!</i><div class="bv"><span>Debt</span><b id="debt">0</b><em class="dbar"><u id="dbar"></u></em></div></div><button class="gold" id="openbank">🏦 Bank</button></div>
 </header>
+<div class="vip">★ Alpine Grand Casino &amp; Resort ★ Private Salons · Five-Star Suites · Over $2.4 billion paid out to guests ★</div>
 <div class="ticker"><div id="tk"></div></div>
 <div class="lobby" id="lobby"><div class="floor">
 <i class="chand" style="left:6%;top:-90px"></i><i class="chand" style="right:6%;top:-90px"></i>
@@ -22,10 +23,10 @@
 <div class="venue v-slots" data-v="slots" tabindex="0" role="button"><b class="sign">Golden Slots</b><div class="art sl"><span>🎰</span><span>🎰</span><span>🎰</span><span>🎰</span><span>🎰</span></div><small>Spin the reels</small></div>
 <div class="venue v-bar" data-v="bar" tabindex="0" role="button"><b class="sign">The Gilded Pour</b><div class="art">🍸🥃🍾</div><small>Drinks for a short boost</small></div>
 <div class="venue v-bj" data-v="blackjack" tabindex="0" role="button"><b class="sign">Blackjack Pit</b><div class="art">🃏♠️♥️</div><small>Beat the dealer to 21</small></div>
-<div class="plaza"><div class="jp">Progressive jackpot<b id="jp">1,284,903</b></div><div class="fount">⛲<i class="rip"></i><i class="rip" style="animation-delay:1s"></i></div>
+<div class="plaza"><div class="jp">Progressive jackpot<b id="jp">48,213,907</b></div><div class="fount">⛲<i class="rip"></i><i class="rip" style="animation-delay:1s"></i></div>
 <span class="pt" style="--d:17s;--y:22%">🚶</span><span class="pt" style="--d:13s;--y:68%">💃</span><span class="pt" style="--d:21s;--y:80%">🕴️</span><span class="pt" style="--d:15s;--y:45%">🤵</span></div>
 <div class="venue v-roul" data-v="roulette" tabindex="0" role="button"><b class="sign">Roulette Salon</b><div class="art"><i class="rw"></i></div><small>Red, black or your lucky number</small></div>
-<div class="venue v-race" data-v="horses" tabindex="0" role="button"><b class="sign">Alpine Downs Racetrack</b><div class="art"><div class="rt"><i>🐎</i><i>🐎</i><i>🐎</i></div></div><small>Back a horse</small></div>
+<div class="venue v-race" data-v="horses" tabindex="0" role="button"><b class="sign">Alpine Grand Prix</b><div class="art"><div class="rt"><i class="car" style="--c:#1e41ff"></i><i class="car" style="--c:#dc0000"></i><i class="car" style="--c:#ff8000"></i></div></div><small>Back an F1 car</small></div>
 <div class="venue v-shop" data-v="shop" tabindex="0" role="button"><b class="sign">Boutique</b><div class="art">👗🎩💎</div><small>Charms, credit and couture</small></div>
 <div class="venue v-quest" data-v="quest" tabindex="0" role="button"><b class="sign">Quest Board</b><span class="badge" id="qbadge"></span><div class="art">📜</div><small>Tasks for chips and XP</small></div>
 </div></div>
@@ -91,13 +92,13 @@
 </section>
 <!-- DOSTIHY -->
 <section id="horses">
-  <h2>Horse Racing – Alpine Downs</h2>
-  <p style="margin:4px 0">Pick a horse and bet on the winner. Payout = stake × odds.</p>
+  <h2>Formula 1 – Alpine Grand Prix</h2>
+  <p style="margin:4px 0">Pick a car and bet on the winner. Payout = stake × odds.</p>
   <div class="stand" id="crowd"></div><div class="track" id="track"></div>
-  <div class="msg" id="hmsg">Pick a horse.</div>
+  <div class="msg" id="hmsg">Pick a car.</div>
   <div class="odds" id="odds"></div>
   <div class="chips" id="hchips"></div>
-  <div class="row"><button class="gold" id="go" disabled>Start race</button></div>
+  <div class="row"><button class="gold" id="go" disabled>Lights out!</button></div>
 </section>
 </main>
 <footer>For entertainment only. No real money is used. Gambling can be addictive.</footer>
@@ -119,5 +120,7 @@
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="script.js"></script>
 <script src="extras.js"></script>
+<div class="modal open" id="age" role="alertdialog" aria-modal="true" aria-labelledby="age-t"><div class="panel agep"><div class="a18">18+</div><h2 id="age-t">Age Verification</h2><p>This site simulates casino games and is for adults only. You must be 18 or older (or the legal gambling age where you live) to enter.</p><ul><li>Chips only: no real money is wagered or won.</li><li>Gambling can be addictive. Play responsibly and set limits.</li><li>Need help? National Problem Gambling Helpline (US): 1-800-522-4700.</li></ul><div class="row"><button class="gold" id="age-y">I am 18 or older – Enter</button><button id="age-n">I am under 18 – Leave</button></div></div></div>
+<script>document.getElementById('age-y').onclick=()=>document.getElementById('age').classList.remove('open');document.getElementById('age-n').onclick=()=>{document.querySelector('#age .panel').innerHTML='<div class="a18">18+</div><h2>Sorry</h2><p>You must be 18 or older to enter. Please close this page.</p>'};</script>
 </body>
 </html>

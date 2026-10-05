@@ -50,21 +50,29 @@ $('mcash').onclick=()=>{if(M&&M.on&&M.open.size)mend(1)};mdraw();
 
 /* ---------- CRASH ---------- */
 let C=null;const chs=[];
+function cdraw(m,bad){const k=$('cg'),g=k.getContext('2d'),W=k.width,H=k.height,t=Math.log(m)/.12,T=Math.max(8,t*1.15),Y=Math.max(2,m*1.2),P=(a,b)=>[44+a/T*(W-70),H-30-(b-1)/(Y-1)*(H-60)];g.clearRect(0,0,W,H);
+ g.font='13px Outfit,sans-serif';g.fillStyle='#ffffff99';g.strokeStyle='#ffffff1c';g.lineWidth=1;
+ for(let i=0;i<=5;i++){const v=1+(Y-1)*i/5,y=P(0,v)[1];g.beginPath();g.moveTo(44,y);g.lineTo(W-10,y);g.stroke();g.fillText(v.toFixed(1)+'×',4,y+4);const x=P(T*i/5,1)[0];g.beginPath();g.moveTo(x,10);g.lineTo(x,H-30);g.stroke();g.fillText((T*i/5).toFixed(0)+'s',x-8,H-10)}
+ const c=bad?'#ff5a4a':'#ffd76a',pts=[];for(let i=0;i<=80;i++){const a=t*i/80;pts.push(P(a,Math.exp(.12*a)))}
+ const e=pts[80],f=g.createLinearGradient(0,0,0,H);f.addColorStop(0,c+'66');f.addColorStop(1,c+'00');
+ g.beginPath();g.moveTo(pts[0][0],H-30);pts.forEach(p=>g.lineTo(...p));g.lineTo(e[0],H-30);g.closePath();g.fillStyle=f;g.fill();
+ g.beginPath();pts.forEach((p,i)=>i?g.lineTo(...p):g.moveTo(...p));g.strokeStyle=c;g.lineWidth=4;g.shadowColor=c;g.shadowBlur=14;g.lineJoin='round';g.stroke();g.shadowBlur=0;
+ const r=$('rk');r.style.left=(e[0]/W*100-3)+'%';r.style.bottom=((H-e[1])/H*100-4)+'%'}
 room('crash','Crash',`<p>The multiplier keeps climbing. Cash out before it crashes. Set an auto cash-out if you like.</p>
-<div class="sky"><i class="rk" id="rk">🚀</i></div><div class="cx" id="cx">1.00×</div><div class="chips" id="cxchips"></div>
+<div class="sky"><canvas id="cg" width="720" height="300"></canvas><i class="rk" id="rk">🚀</i></div><div class="cx" id="cx">1.00×</div><div class="chips" id="cxchips"></div>
 <div class="row"><label>Auto cash-out ×<input id="cauto" type="number" min="1.1" step="0.1" placeholder="off" style="width:90px"></label><button class="gold" id="cgo">Launch</button><button id="ccash" disabled>Cash out</button></div>
 <div class="msg" id="cmsg">Place your bet and launch.</div><div class="chs" id="chist"></div>`);chipbar('cxchips');
-function cend(cash){const c=C;C=null;$('cgo').disabled=false;$('ccash').disabled=true;chs.unshift(c.cp);chs.length=Math.min(chs.length,10);
+function cend(cash){const c=C;C=null;$('cgo').disabled=false;$('ccash').disabled=true;chs.unshift(c.cp);cdraw(cash?c.m:c.cp,!cash);$('rk').textContent=cash?'🚀':'💥';chs.length=Math.min(chs.length,10);
   $('chist').innerHTML=chs.map(x=>`<span class="${x<2?'lo':'hi'}">${x.toFixed(2)}×</span>`).join('');
   if(cash){const p=Math.round(c.bet*c.m);setBal(p);st.crash=Math.max(st.crash||0,c.m);$('cx').textContent=c.m.toFixed(2)+'×';$('cmsg').textContent=`Cashed out at ×${c.m.toFixed(2)}: +${fmt(p)} chips. It crashed at ×${c.cp.toFixed(2)}.`}
   else{$('cx').textContent=c.cp.toFixed(2)+'×';$('cx').className='cx bust';$('cmsg').textContent=`Crashed at ×${c.cp.toFixed(2)}. Bet lost.`}tick()}
 $('cgo').onclick=()=>{if(C)return;if(bal<sel)return $('cmsg').textContent=broke;
   const r=Math.random(),cp=Math.max(1,Math.min(500,Math.floor(97/(1-r))/100)),au=parseFloat($('cauto').value)||0,t0=performance.now();
-  setBal(-sel);C={bet:sel,cp,m:1};$('cgo').disabled=true;$('ccash').disabled=false;$('cx').className='cx';$('cmsg').textContent='Lift off…';
+  setBal(-sel);C={bet:sel,cp,m:1};$('cgo').disabled=true;$('ccash').disabled=false;$('cx').className='cx';$('cmsg').textContent='Lift off…';$('rk').textContent='🚀';cdraw(1);
   (function f(t){if(!C)return;C.m=Math.exp(.12*(t-t0)/1000);
     if(C.m>=cp)return cend(0);if(au>=1.01&&C.m>=au){C.m=au;return cend(1)}
-    $('cx').textContent=C.m.toFixed(2)+'×';const p=Math.min(1,Math.log(C.m)/Math.log(20));$('rk').style.left=4+p*80+'%';$('rk').style.bottom=6+p*60+'%';requestAnimationFrame(f)})(t0)};
-$('ccash').onclick=()=>{if(C)cend(1)};
+    $('cx').textContent=C.m.toFixed(2)+'×';cdraw(C.m);requestAnimationFrame(f)})(t0)};
+$('ccash').onclick=()=>{if(C)cend(1)};cdraw(1);
 
 /* ---------- HIGHER / LOWER ---------- */
 const RV='23456789TJQKA',rv=c=>RV.indexOf(c.r)+2,dr=()=>({r:RV[rnd(13)],s:'♠♥♦♣'[rnd(4)]});let H=null;

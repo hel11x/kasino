@@ -55,3 +55,39 @@ section p{text-align:center}
 .banner{margin-top:10px;padding:8px;border-radius:10px;font:800 19px 'Cinzel',serif;letter-spacing:.06em;text-align:center;animation:pop .35s}
 .banner.win{background:linear-gradient(#2ecc71,#17803f);color:#04230f;box-shadow:0 0 20px #2ecc7188}.banner.lose{background:linear-gradient(#e5604d,#8a1a2b);color:#fff}.banner.push{background:linear-gradient(#e3bf6a,#9a7a22);color:#201700}
 #mp-msg{font-size:22px;text-align:center}
+
+/* ===== Grand Prix (F1) ===== */
+.car{--c2:color-mix(in srgb,var(--c) 55%,#000);position:absolute;width:84px;height:26px;transform:none!important;font-size:0;filter:drop-shadow(0 3px 3px #000a);
+ background:radial-gradient(circle,#fff 0 55%,#0000 60%) 38px 9px/9px 9px no-repeat,linear-gradient(#111,#111) 76px 3px/6px 20px no-repeat,linear-gradient(#111,#111) 0 4px/7px 18px no-repeat,
+ linear-gradient(#111,#111) 15px 0/13px 7px no-repeat,linear-gradient(#111,#111) 15px 19px/13px 7px no-repeat,linear-gradient(#111,#111) 53px 0/11px 7px no-repeat,linear-gradient(#111,#111) 53px 19px/11px 7px no-repeat,
+ linear-gradient(#fff6,#fff6) 20px 12px/40px 2px no-repeat,linear-gradient(90deg,var(--c2),var(--c) 40%,var(--c2)) 6px 8px/72px 10px no-repeat}
+.racing .h.car{animation:vib .08s infinite}@keyframes vib{50%{margin-top:1px}}
+.lane .h.car{margin-left:44px;top:12px}
+#horses{background:linear-gradient(#050505,#15110a 16%,#0a0a0a 16%)}
+.track{background:#1d1f23;border-top:8px solid #d00;border-bottom:8px solid #d00;border-image:repeating-linear-gradient(90deg,#d00 0 28px,#fff 28px 56px) 8}
+.lane{background:linear-gradient(#2c2e33,#1c1e22);border-bottom:2px dashed #fff8}.lane::before{display:none}
+.rt{background:#1d1f23;border-color:#d00}.rt i.car{transform:scale(.55)!important;transform-origin:0 0;animation:run 4s linear infinite}
+/* ===== Ultra-luxury pass ===== */
+:root{--brass:#d4af37;--foil:linear-gradient(135deg,#7a5a14,#f6e27a 28%,#b8902a 52%,#fff3b0 74%,#8a6a1c)}
+body{background:radial-gradient(ellipse at 50% -10%,#2a2112,#0b0805 55%,#000) fixed}
+header{background:linear-gradient(#17120a,#050403);border-bottom:3px solid transparent;border-image:var(--foil) 1}
+.vip{text-align:center;padding:7px 12px;font:700 14px 'Cormorant Garamond',serif;letter-spacing:.18em;text-transform:uppercase;color:#1a1204;background:var(--foil);box-shadow:0 4px 14px #000}
+.gold{background:var(--foil)!important;color:#1a1204;border-color:#fff3b0;text-shadow:0 1px 0 #fff6;box-shadow:inset 0 1px 0 #fff9,0 3px 10px #0009}
+.gold:hover:not(:disabled){filter:brightness(1.15)}
+h1,h2,h3,.sign{font-family:'Cormorant Garamond','Cinzel',serif;letter-spacing:.08em}
+.floor{border:9px solid #120c04;outline:3px solid #d4af37;background:radial-gradient(ellipse at 50% 50%,#0000 30%,#000d 100%),repeating-conic-gradient(#12100c 0 25%,#1f1a10 0 50%) 0 0/90px 90px,#0b0905;box-shadow:inset 0 0 120px #000,0 0 0 4px #7a5a14,0 30px 90px #000}
+.venue{border-color:#d4af37;box-shadow:0 12px 30px #000a,inset 0 0 40px #0008,0 0 0 3px #1a1208,0 0 0 4px #8a6a1c}
+.sign{background:linear-gradient(#1a1208,#050403);color:#f6e27a;border-color:#d4af37;text-shadow:0 0 10px #d4af37}
+.plaza{background:radial-gradient(ellipse,#3a2c10 0,#120c04 72%);border:3px double #d4af37}
+.chand{width:340px;height:340px;background:radial-gradient(#fff3b099,#0000 65%)}
+.jp b{font-size:32px;background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 0 10px #d4af37)}
+main{background:radial-gradient(ellipse at 50% 0,#2a2112 0,#070503 75%)}
+section{border:10px solid #120c04!important;outline:3px solid #d4af37;box-shadow:0 0 0 7px #7a5a14,0 30px 90px #000,inset 0 0 120px #000b}
+section>h2{background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 0 10px #d4af3788);font-size:clamp(28px,4vw,44px)}
+.bank,.stat,.offer,.item{border-color:#d4af37}
+.panel{border-color:#d4af37;box-shadow:0 0 0 4px #120c04,0 0 0 6px #8a6a1c,0 30px 80px #000}
+.ticker{background:#000;border-bottom:1px solid #d4af3766;color:#f6e27a}
+/* age gate */
+#age{z-index:200;background:#000f}.agep{text-align:center;max-width:520px}.agep ul{text-align:left;line-height:1.7;padding-left:20px}
+.a18{width:96px;height:96px;margin:0 auto 10px;display:grid;place-items:center;border-radius:50%;font:800 36px 'Cinzel',serif;color:#f6e27a;border:4px solid #d4af37;background:radial-gradient(#7a1a28,#2a0a10);box-shadow:0 0 30px #d4af3788}
+.agep .row{justify-content:center}
