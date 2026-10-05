@@ -1,10 +1,46 @@
 const $=id=>document.getElementById(id),rnd=n=>Math.floor(Math.random()*n),wait=ms=>new Promise(r=>setTimeout(r,ms));
-let bal=1000,sel=10;
-try{const s=localStorage.getItem('kasino-bal');if(s)bal=Math.max(0,+s||1000)}catch(e){}
-function setBal(d){bal+=d;$('bal').textContent=bal;try{localStorage.setItem('kasino-bal',bal)}catch(e){}if(bal<=0)alert('Došly žetony. Klikněte na Nová hra.')}
-$('reset').onclick=()=>{bal=1000;setBal(0)};setBal(0);
+let bal=1000,sel=10,loans=[],rounds=0,repaid=0,ledger=[];
+const OFFERS=[{n:'Pocket Loan',a:250,r:4},{n:'Standard Loan',a:1000,r:8},{n:'High Roller Credit',a:3000,r:12},{n:'Whale Facility',a:7500,r:18}],INT_EVERY=5,fmt=n=>Math.round(n).toLocaleString('en-US');
+try{const s=JSON.parse(localStorage.getItem('vltava-state'));if(s){bal=s.bal;loans=s.loans||[];rounds=s.rounds||0;repaid=s.repaid||0;ledger=s.ledger||[]}}catch(e){}
+let shown=bal,nudged=false;
+const debt=()=>loans.reduce((a,l)=>a+l.owed,0),limit=()=>5000+repaid*500,avail=()=>Math.max(0,limit()-debt());
+const save=()=>{try{localStorage.setItem('vltava-state',JSON.stringify({bal,loans,rounds,repaid,ledger}))}catch(e){}};
+const log=(t,v)=>{ledger.unshift({t,v});ledger.length=Math.min(ledger.length,12)};
+function toast(m,k){const d=document.createElement('div');d.className='toast '+(k||'');d.textContent=m;$('toasts').appendChild(d);setTimeout(()=>d.remove(),4300)}
+function coins(n){const r=$('bal').getBoundingClientRect();for(let i=0;i<n;i++){const c=document.createElement('i');c.className='coin';c.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+10}px;--dx:${rnd(160)-80}px;--dy:${80+rnd(140)}px;animation-delay:${i*40}ms`;document.body.appendChild(c);setTimeout(()=>c.remove(),1700)}}
+function count(el,from,to){const t0=performance.now();(function f(t){const p=Math.min((t-t0)/600,1);el.textContent=fmt(from+(to-from)*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)})(t0)}
+function render(){const box=$('bal').parentNode;
+  if(bal!==shown){box.classList.remove('up','down');void box.offsetWidth;box.classList.add(bal>shown?'up':'down')}
+  count($('bal'),shown,bal);shown=bal;$('debt').textContent=fmt(debt());$('debtbox').classList.toggle('owing',debt()>0);
+  if($('bank').classList.contains('open'))renderBank()}
+function setBal(d){bal+=d;if(d>=100)coins(Math.min(14,d/50|0));render();save()}
+function renderBank(){const d=debt(),pct=Math.min(100,d/limit()*100),next=INT_EVERY-rounds%INT_EVERY;
+  const rt=!d?['Excellent','#5fd38d']:pct<35?['Good','#9ad35f']:pct<70?['Fair','#e3bf6a']:['Poor','#e5604d'];
+  $('bk-sum').innerHTML=[['Chips',fmt(bal)],['Total debt',fmt(d)],['Net worth',fmt(bal-d)],['Credit available',fmt(avail())+' / '+fmt(limit())]].map(([a,b])=>`<div class="stat"><span>${a}</span><b>${b}</b></div>`).join('')+`<div class="stat"><span>Credit rating</span><b style="color:${rt[1]}">${rt[0]}</b></div>`;
+  $('bk-bar').style.width=pct+'%';$('bk-bar').style.background=rt[1];
+  $('bk-offers').innerHTML=OFFERS.map((o,i)=>`<div class="offer"><h4>${o.n}</h4><b>${fmt(o.a)}</b><p>${o.r}% interest every ${INT_EVERY} rounds</p><button class="gold" data-b="${i}" ${o.a>avail()?'disabled':''}>Borrow</button></div>`).join('');
+  $('bk-loans').innerHTML=loans.length?loans.map((l,i)=>`<tr><td>${l.n}</td><td>${fmt(l.owed)}</td><td>${l.r}%</td><td><button data-p="${i}:100" ${bal<1?'disabled':''}>Pay 100</button> <button class="gold" data-p="${i}:all" ${bal<l.owed?'disabled':''}>Pay in full</button></td></tr>`).join(''):'<tr><td colspan="4" class="empty">No active loans. You are debt-free.</td></tr>';
+  $('bk-next').textContent=loans.length?`Next interest charge in ${next} round${next>1?'s':''}.`:'No interest due.';
+  $('bk-led').innerHTML=ledger.map(e=>`<li><span>${e.t}</span><b class="${e.v>=0?'pos':'neg'}">${e.v>=0?'+':''}${fmt(e.v)}</b></li>`).join('')||'<li class="empty">No transactions yet.</li>'}
+const openBank=()=>{renderBank();$('bank').classList.add('open');$('bank').querySelector('[data-x]').focus()},closeBank=()=>$('bank').classList.remove('open');
+$('openbank').onclick=openBank;document.addEventListener('keydown',e=>{if(e.key=='Escape')closeBank()});
+$('bank').onclick=e=>{if(e.target.id=='bank'||e.target.closest('[data-x]'))return closeBank();
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.b!==undefined){const o=OFFERS[+b.dataset.b];if(o.a>avail())return;loans.push({n:o.n,owed:o.a,r:o.r});bal+=o.a;log('Borrowed: '+o.n,o.a);toast(`Loan approved: ${fmt(o.a)} chips`,'good');coins(14);nudged=false;render();save();checkBroke()}
+  if(b.dataset.p){const [i,m]=b.dataset.p.split(':'),l=loans[+i],amt=Math.min(m=='all'?l.owed:+m,bal,l.owed);if(amt<=0)return;
+    bal-=amt;l.owed-=amt;log('Repaid: '+l.n,-amt);
+    if(l.owed<=0){loans.splice(+i,1);repaid++;toast('Loan fully repaid. Credit limit +500.','good')}else toast(`Repaid ${fmt(amt)} chips`);render();save()}};
+function checkBroke(){const btn=$('openbank');
+  if(bal>=10){nudged=false;btn.classList.remove('alert');return}
+  btn.classList.add('alert');
+  if(avail()<OFFERS[0].a){$('bust-d').textContent=fmt(debt());$('bust').classList.add('open')}
+  else if(!nudged){nudged=true;toast('You are out of chips. The bank is open.','warn');openBank()}}
+function tick(){rounds++;
+  if(rounds%INT_EVERY==0&&loans.length){let t=0;loans.forEach(l=>{const i=Math.max(1,Math.round(l.owed*l.r/100));l.owed+=i;t+=i});log('Interest charged',-t);toast(`The bank charged ${fmt(t)} chips in interest`,'warn')}
+  render();save();checkBroke()}
+render();checkBroke();
 /* tabs */
-[['roulette','Ruleta'],['blackjack','Blackjack'],['slots','Sloty'],['horses','Dostihy']].forEach(([id,t],i)=>{
+[['roulette','Roulette'],['blackjack','Blackjack'],['slots','Slots'],['horses','Horse Racing']].forEach(([id,t],i)=>{
   const b=document.createElement('button');b.textContent=t;b.onclick=()=>{document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id==id));[...$('tabs').children].forEach(c=>c.classList.toggle('on',c==b))};
   $('tabs').appendChild(b);if(!i)b.click()});
 /* chips (shared selection) */
@@ -34,24 +70,23 @@ drawBall(-Math.PI/2+.4,311);
 let rot=0,bets={},spinning=false;
 const hist=[];
 function bt(label,key,cls,parent,style){const b=document.createElement('button');b.textContent=label;b.className=cls||'';if(style)b.style.cssText=style;b.dataset.k=key;
-  b.onclick=()=>{if(spinning)return;if(bal<tot()+sel)return $('rmsg').textContent='Nedostatek žetonů.';bets[key]=(bets[key]||0)+sel;draw()};parent.appendChild(b)}
+  b.onclick=()=>{if(spinning)return;if(bal<tot()+sel)return $('rmsg').textContent='Not enough chips. Visit the bank.';bets[key]=(bets[key]||0)+sel;draw()};parent.appendChild(b)}
 bt('0','n0','n-g zero',$('board'));
 for(let r=0;r<3;r++)for(let k=0;k<12;k++){const n=k*3+(3-r);bt(n,'n'+n,'n-'+col(n),$('board'))}
-[['1. tucet','d1'],['2. tucet','d2'],['3. tucet','d3'],['Červená','red'],['Černá','black'],['Sudé','even'],['Liché','odd'],['1–18','low'],['19–36','high']].forEach(([l,k])=>bt(l.replace('tucet','tucet').replace('tucet','tucet'),k,'',$('out')));
-[...$('out').children].slice(0,3).forEach((b,i)=>b.textContent=(i+1)+'. dvanáctka');
+[['1st dozen','d1'],['2nd dozen','d2'],['3rd dozen','d3'],['Red','red'],['Black','black'],['Even','even'],['Odd','odd'],['1–18','low'],['19–36','high']].forEach(([l,k])=>bt(l,k,'',$('out')));
 const tot=()=>Object.values(bets).reduce((a,b)=>a+b,0);
-function draw(){document.querySelectorAll('[data-k]').forEach(b=>{b.querySelector('.stake')?.remove();const v=bets[b.dataset.k];if(v){const s=document.createElement('span');s.className='stake';s.textContent=v;b.appendChild(s)}});$('tot').textContent=tot()?'Vsazeno: '+tot():''}
+function draw(){document.querySelectorAll('[data-k]').forEach(b=>{b.querySelector('.stake')?.remove();const v=bets[b.dataset.k];if(v){const s=document.createElement('span');s.className='stake';s.textContent=v;b.appendChild(s)}});$('tot').textContent=tot()?'Total bet: '+tot():''}
 $('clr').onclick=()=>{if(!spinning){bets={};draw()}};
 function win(k,n){if(k[0]=='n')return n==+k.slice(1)?36:0;if(!n)return 0;
   return({d1:n<=12?3:0,d2:n>12&&n<=24?3:0,d3:n>24?3:0,red:RED.has(n)?2:0,black:!RED.has(n)?2:0,even:n%2==0?2:0,odd:n%2?2:0,low:n<=18?2:0,high:n>18?2:0})[k]}
 $('spin').onclick=async()=>{
-  if(spinning||!tot())return $('rmsg').textContent='Nejdřív položte sázku.';
-  spinning=true;const stake=tot();setBal(-stake);$('rmsg').textContent='Kolo se točí…';$('hub').textContent='…';
+  if(spinning||!tot())return $('rmsg').textContent='Place a bet first.';
+  spinning=true;const stake=tot();setBal(-stake);$('rmsg').textContent='The wheel is spinning…';$('hub').textContent='…';
   const i=rnd(37),n=ORD[i],rel=-Math.PI/2+i*2*Math.PI/37,w0=rot*Math.PI/180,Wt=2*Math.PI*(4+Math.random()),K=2*Math.PI*9;
   const T=window.matchMedia('(prefers-reduced-motion:reduce)').matches?1200:7500,t0=performance.now();
   await new Promise(done=>{(function f(now){
     const p=Math.min((now-t0)/T,1),w=w0+Wt*(1-Math.pow(1-p,3)),q=Math.max(0,(p-.6)/.4);
-    /* kulička běží proti směru kola po vnější dráze, pak padá do přihrádky a poskakuje */
+    /* the ball runs against the wheel on the outer track, then drops into a pocket and bounces */
     const r=p<.6?311:311-18*(1-Math.pow(1-q,2))+Math.sin(q*20)*(1-q)*7;
     $('wheel').style.transform=`rotate(${w}rad)`;drawBall(w+rel+Math.pow(1-p,2)*K,r);
     p<1?requestAnimationFrame(f):done()})(t0)});
@@ -59,55 +94,55 @@ $('spin').onclick=async()=>{
   let ret=0;for(const k in bets)ret+=bets[k]*win(k,n);
   $('hub').textContent=n;hist.unshift(n);hist.length=Math.min(hist.length,14);
   $('hist').innerHTML=hist.map(x=>`<span style="background:${hex[col(x)]}">${x}</span>`).join('');
-  setBal(ret);$('rmsg').textContent=ret?`Padlo ${n}. Vyhráváte ${ret-stake>0?'+'+(ret-stake):'zpět '+ret}.`:`Padlo ${n}. Sázky propadly.`;
-  bets={};draw();spinning=false};
+  setBal(ret);$('rmsg').textContent=ret?`${n} ${col(n)=='g'?'green':col(n)=='r'?'red':'black'}. ${ret>stake?'You win +'+(ret-stake):'Returned '+ret}.`:`${n}. Bets lost.`;
+  bets={};draw();spinning=false;tick()};
 /* ===== BLACKJACK ===== */
 let deck,P,D,bj=0,play=false;
 const newDeck=()=>{deck=[];for(const s of '♠♥♦♣')for(const r of 'A23456789TJQK')deck.push({r,s});for(let i=deck.length-1;i>0;i--){const j=rnd(i+1);[deck[i],deck[j]]=[deck[j],deck[i]]}};
 const val=h=>{let t=0,a=0;h.forEach(c=>{if(c.r=='A'){a++;t+=11}else t+='TJQK'.includes(c.r)?10:+c.r});while(t>21&&a--)t-=10;return t};
 const cardEl=(c,hide)=>hide?'<div class="card back"></div>':`<div class="card ${'♥♦'.includes(c.s)?'red':''}"><span>${c.r=='T'?'10':c.r}</span><span class="s">${c.s}</span><span class="r2">${c.r=='T'?'10':c.r}</span></div>`;
 function show(hide){$('ph').innerHTML=P.map(c=>cardEl(c)).join('');$('dh').innerHTML=D.map((c,i)=>cardEl(c,hide&&i==1)).join('');
-  $('ps').textContent='Součet: '+val(P);$('ds').textContent=hide?'Viditelná karta: '+val([D[0]]):'Součet: '+val(D);$('bbet').textContent=bj?'Sázka: '+bj:''}
+  $('ps').textContent='Total: '+val(P);$('ds').textContent=hide?'Showing: '+val([D[0]]):'Total: '+val(D);$('bbet').textContent=bj?'Bet: '+bj:''}
 function end(msg,mult){play=false;['hit','stand','dbl'].forEach(i=>$(i).disabled=true);$('deal').disabled=false;show(false);
-  if(mult)setBal(Math.round(bj*mult));$('bmsg').textContent=msg}
-$('deal').onclick=()=>{if(bal<sel)return $('bmsg').textContent='Nedostatek žetonů.';
-  if(!deck||deck.length<15)newDeck();bj=sel;setBal(-bj);P=[deck.pop(),deck.pop()];D=[deck.pop(),deck.pop()];play=true;$('deal').disabled=true;$('bmsg').textContent='Hrajete.';show(true);
-  if(val(P)==21)return end(val(D)==21?'Oba blackjack – remíza.':'Blackjack! Výplata 3:2.',val(D)==21?1:2.5);
+  if(mult)setBal(Math.round(bj*mult));$('bmsg').textContent=msg;tick()}
+$('deal').onclick=()=>{if(bal<sel)return $('bmsg').textContent='Not enough chips. Visit the bank.';
+  if(!deck||deck.length<15)newDeck();bj=sel;setBal(-bj);P=[deck.pop(),deck.pop()];D=[deck.pop(),deck.pop()];play=true;$('deal').disabled=true;$('bmsg').textContent='Your move.';show(true);
+  if(val(P)==21)return end(val(D)==21?'Both have blackjack – push.':'Blackjack! Pays 3:2.',val(D)==21?1:2.5);
   $('hit').disabled=$('stand').disabled=false;$('dbl').disabled=bal<bj};
-$('hit').onclick=()=>{P.push(deck.pop());$('dbl').disabled=true;show(true);if(val(P)>21)end('Přes 21. Prohráváte.',0);else if(val(P)==21)$('stand').click()};
+$('hit').onclick=()=>{P.push(deck.pop());$('dbl').disabled=true;show(true);if(val(P)>21)end('Bust. You lose.',0);else if(val(P)==21)$('stand').click()};
 async function dealer(){show(false);while(val(D)<17){await wait(600);D.push(deck.pop());show(false)}
-  const p=val(P),d=val(D);if(d>21)end('Krupiér má přes 21. Vyhráváte!',2);else if(p>d)end('Vyhráváte '+p+' proti '+d+'.',2);else if(p<d)end('Krupiér vyhrává '+d+' proti '+p+'.',0);else end('Remíza – sázka vrácena.',1)}
+  const p=val(P),d=val(D);if(d>21)end('Dealer busts. You win!',2);else if(p>d)end('You win '+p+' to '+d+'.',2);else if(p<d)end('Dealer wins '+d+' to '+p+'.',0);else end('Push – bet returned.',1)}
 $('stand').onclick=()=>{['hit','stand','dbl'].forEach(i=>$(i).disabled=true);dealer()};
-$('dbl').onclick=()=>{setBal(-bj);bj*=2;P.push(deck.pop());show(true);if(val(P)>21)end('Přes 21. Prohráváte dvojnásobek.',0);else $('stand').click()};
+$('dbl').onclick=()=>{setBal(-bj);bj*=2;P.push(deck.pop());show(true);if(val(P)>21)end('Bust. You lose the doubled bet.',0);else $('stand').click()};
 /* ===== SLOTY ===== */
 const SYM=[['🍒',5],['🍋',8],['🔔',15],['⭐',25],['7️⃣',50],['💎',100]];
-$('pay').innerHTML=SYM.map(([s,m])=>`<tr><td>${s} ${s} ${s}</td><td>${m}× sázka</td></tr>`).join('')+'<tr><td>🍒 🍒 jakékoli</td><td>2× sázka</td></tr>';
+$('pay').innerHTML=SYM.map(([s,m])=>`<tr><td>${s} ${s} ${s}</td><td>${m}× bet</td></tr>`).join('')+'<tr><td>🍒 🍒 any</td><td>2× bet</td></tr>';
 let busy=false;
-$('pull').onclick=async()=>{if(busy)return;if(bal<sel)return $('smsg').textContent='Nedostatek žetonů.';
-  busy=true;const bet=sel;setBal(-bet);$('smsg').textContent='Válce se točí…';
+$('pull').onclick=async()=>{if(busy)return;if(bal<sel)return $('smsg').textContent='Not enough chips. Visit the bank.';
+  busy=true;const bet=sel;setBal(-bet);$('smsg').textContent='Reels are spinning…';
   const res=[0,1,2].map(()=>{const r=Math.random();return r<.3?0:r<.55?1:r<.75?2:r<.88?3:r<.96?4:5}),els=[0,1,2].map(i=>$('r'+i));
   els.forEach(e=>e.classList.add('spin'));
   const iv=setInterval(()=>els.forEach(e=>{if(e.classList.contains('spin'))e.textContent=SYM[rnd(6)][0]}),70);
   for(let i=0;i<3;i++){await wait(800+i*500);els[i].classList.remove('spin');els[i].textContent=SYM[res[i]][0]}
   clearInterval(iv);let m=0;
   if(res[0]==res[1]&&res[1]==res[2])m=SYM[res[0]][1];else if(res.filter(x=>x==0).length>=2)m=2;
-  if(m){setBal(bet*m);$('smsg').textContent=`Výhra ${bet*m} žetonů (${m}×)!`}else $('smsg').textContent='Tentokrát nic. Zkuste to znovu.';busy=false};
+  if(m){setBal(bet*m);$('smsg').textContent=`You win ${bet*m} chips (${m}×)!`}else $('smsg').textContent='No win this time. Try again.';busy=false;tick()};
 /* ===== DOSTIHY ===== */
-const HS=[['Šedý Blesk',2.5,1.0],['Vltavský Vítr',3,.96],['Zlatá Podkova',4,.92],['Černá Orchidej',5,.88],['Starý Hrabě',8,.8],['Malý Outsider',12,.72]];
+const HS=[['Silver Bolt',2.5,1.0],['River Gale',3,.96],['Golden Horseshoe',4,.92],['Black Orchid',5,.88],['Old Earl',8,.8],['Little Longshot',12,.72]];
 let pick=-1,racing=false;
 function buildTrack(){$('track').innerHTML=HS.map(h=>`<div class="lane"><span class="nm">${h[0]}</span><span class="h">🐎</span></div>`).join('')+'';$('track').lastChild&&($('track').style.position='relative');
   if(!$('track').querySelector('.finish')){const f=document.createElement('div');f.className='finish';$('track').appendChild(f)}}
 buildTrack();
 $('odds').innerHTML=HS.map((h,i)=>`<button data-i="${i}"><span>${i+1}. ${h[0]}</span><span>${h[1]}:1</span></button>`).join('');
-$('odds').onclick=e=>{const b=e.target.closest('button');if(!b||racing)return;pick=+b.dataset.i;[...$('odds').children].forEach(x=>x.classList.toggle('sel',x==b));$('go').disabled=false;$('hmsg').textContent='Vsadíte na: '+HS[pick][0]};
-$('go').onclick=()=>{if(racing||pick<0)return;if(bal<sel)return $('hmsg').textContent='Nedostatek žetonů.';
-  racing=true;const bet=sel;setBal(-bet);$('go').disabled=true;$('hmsg').textContent='Jsou za startem!';
+$('odds').onclick=e=>{const b=e.target.closest('button');if(!b||racing)return;pick=+b.dataset.i;[...$('odds').children].forEach(x=>x.classList.toggle('sel',x==b));$('go').disabled=false;$('hmsg').textContent='Betting on: '+HS[pick][0]};
+$('go').onclick=()=>{if(racing||pick<0)return;if(bal<sel)return $('hmsg').textContent='Not enough chips. Visit the bank.';
+  racing=true;const bet=sel;setBal(-bet);$('go').disabled=true;$('hmsg').textContent='And they\'re off!';
   const hs=[...document.querySelectorAll('.h')],w=$('track').clientWidth-70,pos=HS.map(()=>0);let done=false;
   (function f(){HS.forEach((h,i)=>pos[i]+=(Math.random()*1.1+.2)*h[2]*.9);
     hs.forEach((e,i)=>e.style.left=Math.min(pos[i]/100,1)*w+'px');
     const lead=pos.findIndex(p=>p>=100);
     if(lead<0)return requestAnimationFrame(f);
     const win=pos.indexOf(Math.max(...pos));
-    if(win==pick){setBal(Math.round(bet*HS[pick][1]));$('hmsg').textContent=`Vítěz: ${HS[win][0]}. Vyhráváte ${Math.round(bet*HS[pick][1])}!`}
-    else $('hmsg').textContent=`Vítěz: ${HS[win][0]}. Váš kůň dojel hůř, sázka propadla.`;
-    racing=false;$('go').disabled=false})()};
+    if(win==pick){setBal(Math.round(bet*HS[pick][1]));$('hmsg').textContent=`Winner: ${HS[win][0]}. You win ${Math.round(bet*HS[pick][1])} chips!`}
+    else $('hmsg').textContent=`Winner: ${HS[win][0]}. Your horse did not place. Bet lost.`;
+    racing=false;$('go').disabled=false;tick()})()};

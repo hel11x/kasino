@@ -71,3 +71,57 @@ section.on{display:block}
 .odds button.sel{background:var(--brass);color:var(--ink)}
 footer{text-align:center;padding:10px 20px 30px;font-size:13px;opacity:.7}
 @media(prefers-reduced-motion:reduce){*{animation:none!important}#wheel{transition-duration:.5s}}
+
+/* ===== Bank, wallet, animations ===== */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:#070b09d9;backdrop-filter:blur(10px)}
+.logo{background:linear-gradient(100deg,#c9a24b 30%,#fff3b0 50%,#c9a24b 70%) 0 0/200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 6s linear infinite}
+.logo i{color:var(--ivory)}
+@keyframes shine{to{background-position:-200% 0}}
+section.on{animation:fade .4s}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}}
+.stake{animation:pop .25s}@keyframes pop{from{transform:scale(0)}}
+.wallet{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.bank{padding:8px 20px;gap:10px;transition:border-color .3s}
+.bank span{font-size:13px;opacity:.75}
+.bank b{min-width:64px}
+.bank.up b{animation:fup .9s}.bank.down b{animation:fdn .9s}
+@keyframes fup{30%{color:#7dffb0;transform:scale(1.15)}}
+@keyframes fdn{30%{color:#ff8a78;transform:scale(.92)}}
+.bank.owing{border-color:#e5604d}.bank.owing b{color:#ff8a78}
+#openbank{padding:12px 22px}
+#openbank.alert{animation:pulse 1s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 9px #c9a24b44}}
+.coin{position:fixed;width:14px;height:14px;border-radius:50%;background:radial-gradient(#fff3b0,#c9a24b 60%,#7a5a14);box-shadow:0 0 6px #c9a24b;pointer-events:none;z-index:60;animation:fly 1.2s ease-in forwards}
+@keyframes fly{0%{transform:translate(0,0) scale(.6);opacity:1}40%{transform:translate(var(--dx),-60px)}100%{transform:translate(var(--dx),var(--dy));opacity:0}}
+.modal{position:fixed;inset:0;background:#000b;backdrop-filter:blur(6px);display:grid;place-items:center;opacity:0;visibility:hidden;transition:.25s;z-index:50;padding:16px}
+.modal.open{opacity:1;visibility:visible}
+.panel{width:min(780px,100%);max-height:90vh;overflow:auto;background:linear-gradient(#10261d,#08150f);border:1px solid var(--brass);border-radius:16px;padding:24px;transform:translateY(24px) scale(.97);transition:.35s cubic-bezier(.2,.9,.3,1.2);box-shadow:0 30px 80px #000}
+.modal.open .panel{transform:none}
+.panel h3{margin:22px 0 8px;font-size:18px;color:var(--brass)}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{background:#0006;border:1px solid #c9a24b44;border-radius:10px;padding:10px 14px}
+.stat span{display:block;font-size:12px;opacity:.7}
+.stat b{font:800 21px 'Bodoni Moda',serif;color:var(--brass)}
+.barwrap{height:8px;background:#0008;border-radius:8px;overflow:hidden;margin-top:14px}
+#bk-bar{height:100%;width:0;transition:width .6s,background .6s}
+.cap{font-size:13px;opacity:.7;margin:4px 0 0}
+.offers{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.offer{background:linear-gradient(#17372a,#0c1f17);border:1px solid #c9a24b66;border-radius:12px;padding:14px;transition:.2s}
+.offer:hover{transform:translateY(-3px);border-color:var(--brass)}
+.offer h4{margin:0;font-size:14px}
+.offer b{display:block;font:800 28px 'Bodoni Moda',serif;color:var(--brass)}
+.offer p{font-size:12px;opacity:.7;margin:4px 0 10px}
+.loans{width:100%;border-collapse:collapse}
+.loans th{text-align:left;font-size:12px;opacity:.6;padding:6px}
+.loans td{padding:8px 6px;border-top:1px solid #c9a24b22}
+.empty{opacity:.6;font-style:italic}
+.ledger{list-style:none;margin:0;padding:0}
+.ledger li{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid #c9a24b22;font-size:14px}
+.pos{color:#5fd38d}.neg{color:#ff8a78}
+.bust{text-align:center}.bust h2{color:#ff8a78;margin-bottom:12px}
+.toasts{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;z-index:70}
+.toast{background:#0b1a13;border:1px solid var(--brass);border-left-width:5px;padding:12px 16px;border-radius:8px;box-shadow:0 8px 24px #000a;animation:tin .35s,tout .4s 3.9s forwards}
+.toast.good{border-color:#5fd38d}.toast.warn{border-color:#e5604d}
+@keyframes tin{from{transform:translateX(120%)}}@keyframes tout{to{opacity:0;transform:translateX(40px)}}
+@media(prefers-reduced-motion:reduce){.coin{display:none}.modal,.panel{transition:none}}
