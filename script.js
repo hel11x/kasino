@@ -50,7 +50,7 @@ function hud(){$('dbar').style.width=Math.min(100,debt()/limit()*100)+'%';$('lvl
 function ev(k){G.q.forEach(q=>{if(q.k!=k||q.p>=need(q))return;q.p++;if(q.p>=need(q))toast('Quest complete: '+qd(q)[1]+'. Claim it at the Quest Board.','good')});hud();save()}
 function addXp(n){G.xp+=n*(G.buff.r>0?G.buff.x:1);while(G.xp>=G.lvl*100){G.xp-=G.lvl*100;G.lvl++;bal+=G.lvl*100;toast(`Level up! You are level ${G.lvl}. Bonus: ${fmt(G.lvl*100)} chips`,'good');coins(14)}}
 let S='';
-function sheet(k){S=k;const m={shop:['Alpine Boutique','Charms, credit and couture. Perks last forever.'],bar:['The Gilded Pour','A drink gives a short boost. Cheers.'],quest:['Quest Board','Finish tasks for chips and XP. Every claim makes the next one harder and richer.']}[k];
+function sheet(k){S=k;const m={shop:['Madring Boutique','Charms, credit and couture. Perks last forever.'],bar:['The Gilded Pour','A drink gives a short boost. Cheers.'],quest:['Quest Board','Finish tasks for chips and XP. Every claim makes the next one harder and richer.']}[k];
   $('sheet-t').textContent=m[0];$('sheet-s').textContent=m[1];renderSheet();$('sheet').classList.add('open')}
 function renderSheet(){const el=$('sheet-b');
   if(S=='quest'){el.innerHTML=G.q.map((q,i)=>{const d=qd(q),n=need(q),ok=q.p>=n;return `<div class="quest${ok?' done':''}"><div><h4>${d[1]}</h4><p>${d[2].replace('{n}',n)}. Reward: ${fmt(d[4]*q.m)} chips</p></div><button class="gold" data-claim="${i}" ${ok?'':'disabled'}>${ok?'Claim':q.p+' / '+n}</button><div class="qb"><i style="width:${q.p/n*100}%"></i></div></div>`}).join('');return}
