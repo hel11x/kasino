@@ -1,19 +1,20 @@
 const $=id=>document.getElementById(id),rnd=n=>Math.floor(Math.random()*n),wait=ms=>new Promise(r=>setTimeout(r,ms));
 let bal=1000,sel=10,loans=[],rounds=0,repaid=0,ledger=[];
 const OFFERS=[{n:'Pocket Loan',a:250,r:4},{n:'Standard Loan',a:1000,r:8},{n:'High Roller Credit',a:3000,r:12},{n:'Whale Facility',a:7500,r:18}],INT_EVERY=5,fmt=n=>Math.round(n).toLocaleString('en-US');
-try{const s=JSON.parse(localStorage.getItem('vltava-state'));if(s){bal=s.bal;loans=s.loans||[];rounds=s.rounds||0;repaid=s.repaid||0;ledger=s.ledger||[]}}catch(e){}
+const G={xp:0,lvl:1,owned:[],av:'🙂',buff:{r:0,l:0,x:1},q:null};
+try{const s=JSON.parse(localStorage.getItem('vltava-state'));if(s){bal=s.bal;loans=s.loans||[];rounds=s.rounds||0;repaid=s.repaid||0;ledger=s.ledger||[];Object.assign(G,s.g||{})}}catch(e){}
 let shown=bal,nudged=false;
-const debt=()=>loans.reduce((a,l)=>a+l.owed,0),limit=()=>5000+repaid*500,avail=()=>Math.max(0,limit()-debt());
-const save=()=>{try{localStorage.setItem('vltava-state',JSON.stringify({bal,loans,rounds,repaid,ledger}))}catch(e){}};
+const debt=()=>loans.reduce((a,l)=>a+l.owed,0),limit=()=>5000+repaid*500+(has('card')?2000:0),avail=()=>Math.max(0,limit()-debt());
+const save=()=>{try{localStorage.setItem('vltava-state',JSON.stringify({bal,loans,rounds,repaid,ledger,g:G}))}catch(e){}};
 const log=(t,v)=>{ledger.unshift({t,v});ledger.length=Math.min(ledger.length,12)};
 function toast(m,k){const d=document.createElement('div');d.className='toast '+(k||'');d.textContent=m;$('toasts').appendChild(d);setTimeout(()=>d.remove(),4300)}
 function coins(n){const r=$('bal').getBoundingClientRect();for(let i=0;i<n;i++){const c=document.createElement('i');c.className='coin';c.style.cssText=`left:${r.left+r.width/2}px;top:${r.top+10}px;--dx:${rnd(160)-80}px;--dy:${80+rnd(140)}px;animation-delay:${i*40}ms`;document.body.appendChild(c);setTimeout(()=>c.remove(),1700)}}
 function count(el,from,to){const t0=performance.now();(function f(t){const p=Math.min((t-t0)/600,1);el.textContent=fmt(from+(to-from)*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)})(t0)}
-function render(){const box=$('bal').parentNode;
+function render(){hud();const box=$('bal').parentNode;
   if(bal!==shown){box.classList.remove('up','down');void box.offsetWidth;box.classList.add(bal>shown?'up':'down')}
   count($('bal'),shown,bal);shown=bal;$('debt').textContent=fmt(debt());$('debtbox').classList.toggle('owing',debt()>0);
   if($('bank').classList.contains('open'))renderBank()}
-function setBal(d){bal+=d;if(d>=100)coins(Math.min(14,d/50|0));render();save()}
+function setBal(d){if(d>0)d=Math.round(d*(1+luck()));bal+=d;if(d>=100)coins(Math.min(14,d/50|0));render();save()}
 function renderBank(){const d=debt(),pct=Math.min(100,d/limit()*100),next=INT_EVERY-rounds%INT_EVERY;
   const rt=!d?['Excellent','#5fd38d']:pct<35?['Good','#9ad35f']:pct<70?['Fair','#e3bf6a']:['Poor','#e5604d'];
   $('bk-sum').innerHTML=[['Chips',fmt(bal)],['Total debt',fmt(d)],['Net worth',fmt(bal-d)],['Credit available',fmt(avail())+' / '+fmt(limit())]].map(([a,b])=>`<div class="stat"><span>${a}</span><b>${b}</b></div>`).join('')+`<div class="stat"><span>Credit rating</span><b style="color:${rt[1]}">${rt[0]}</b></div>`;
@@ -23,26 +24,57 @@ function renderBank(){const d=debt(),pct=Math.min(100,d/limit()*100),next=INT_EV
   $('bk-next').textContent=loans.length?`Next interest charge in ${next} round${next>1?'s':''}.`:'No interest due.';
   $('bk-led').innerHTML=ledger.map(e=>`<li><span>${e.t}</span><b class="${e.v>=0?'pos':'neg'}">${e.v>=0?'+':''}${fmt(e.v)}</b></li>`).join('')||'<li class="empty">No transactions yet.</li>'}
 const openBank=()=>{renderBank();$('bank').classList.add('open');$('bank').querySelector('[data-x]').focus()},closeBank=()=>$('bank').classList.remove('open');
-$('openbank').onclick=openBank;document.addEventListener('keydown',e=>{if(e.key=='Escape')closeBank()});
+$('openbank').onclick=openBank;document.addEventListener('keydown',e=>{if(e.key=='Escape'){closeBank();$('sheet').classList.remove('open')}});
 $('bank').onclick=e=>{if(e.target.id=='bank'||e.target.closest('[data-x]'))return closeBank();
   const b=e.target.closest('button');if(!b)return;
   if(b.dataset.b!==undefined){const o=OFFERS[+b.dataset.b];if(o.a>avail())return;loans.push({n:o.n,owed:o.a,r:o.r});bal+=o.a;log('Borrowed: '+o.n,o.a);toast(`Loan approved: ${fmt(o.a)} chips`,'good');coins(14);nudged=false;render();save();checkBroke()}
   if(b.dataset.p){const [i,m]=b.dataset.p.split(':'),l=loans[+i],amt=Math.min(m=='all'?l.owed:+m,bal,l.owed);if(amt<=0)return;
     bal-=amt;l.owed-=amt;log('Repaid: '+l.n,-amt);
-    if(l.owed<=0){loans.splice(+i,1);repaid++;toast('Loan fully repaid. Credit limit +500.','good')}else toast(`Repaid ${fmt(amt)} chips`);render();save()}};
+    if(l.owed<=0){loans.splice(+i,1);repaid++;ev('repaid');toast('Loan fully repaid. Credit limit +500.','good')}else toast(`Repaid ${fmt(amt)} chips`);render();save()}};
 function checkBroke(){const btn=$('openbank');
   if(bal>=10){nudged=false;btn.classList.remove('alert');return}
   btn.classList.add('alert');
   if(avail()<OFFERS[0].a){$('bust-d').textContent=fmt(debt());$('bust').classList.add('open')}
   else if(!nudged){nudged=true;toast('You are out of chips. The bank is open.','warn');openBank()}}
-function tick(){rounds++;
+function tick(){rounds++;ev('round');addXp(10);if(G.buff.r>0&&!--G.buff.r)toast('Your drink wore off.');
   if(rounds%INT_EVERY==0&&loans.length){let t=0;loans.forEach(l=>{const i=Math.max(1,Math.round(l.owed*l.r/100));l.owed+=i;t+=i});log('Interest charged',-t);toast(`The bank charged ${fmt(t)} chips in interest`,'warn')}
   render();save();checkBroke()}
+const QT=[['rwin','Spin Doctor','Win {n} roulette spin(s)',3,300],['bjwin','Card Shark','Win {n} blackjack hand(s)',2,300],['swin','Lucky Streak','Hit {n} winning slot spin(s)',2,250],['hwin','Day at the Races','Back {n} winning horse(s)',1,400],['round','Regular','Play {n} rounds anywhere',10,350],['repaid','Clean Slate','Fully repay {n} loan(s)',1,500],['buy','Window Shopper','Buy {n} item(s) at the boutique or bar',1,150]];
+const SHOP=[{id:'foot',n:"Rabbit's Foot",e:'🐇',p:350,d:'+5% on every payout',luck:.05},{id:'clover',n:'Four-Leaf Clover',e:'🍀',p:900,d:'+10% on every payout',luck:.1},{id:'dice',n:'Golden Dice',e:'🎲',p:2200,d:'+15% on every payout',luck:.15},{id:'card',n:'Platinum Card',e:'💳',p:1200,d:'+2,000 bank credit limit'},{id:'tux',n:'Tuxedo',e:'🤵',p:500,d:'Look the part',av:1},{id:'gown',n:'Evening Gown',e:'💃',p:500,d:'Look the part',av:1},{id:'crown',n:'Crown',e:'👑',p:3000,d:'High-roller status',av:1}];
+const BAR=[{id:'esp',n:'Espresso',e:'☕',p:30,d:'2× XP for 5 rounds',buff:{r:5,l:0,x:2}},{id:'mart',n:'Lucky Martini',e:'🍸',p:80,d:'+20% payouts for 5 rounds',buff:{r:5,l:.2,x:1}},{id:'champ',n:'Champagne',e:'🍾',p:250,d:'+30% payouts and 2× XP for 3 rounds',buff:{r:3,l:.3,x:2}}];
+const has=id=>G.owned.includes(id),qd=q=>QT.find(x=>x[0]==q.k),need=q=>qd(q)[3]*q.m,luck=()=>SHOP.reduce((a,i)=>a+(has(i.id)&&i.luck||0),0)+(G.buff.r>0?G.buff.l:0);
+if(!G.q)G.q=QT.map(d=>({k:d[0],p:0,m:1}));
+function hud(){$('lvl').textContent='Level '+G.lvl;$('xpf').style.width=G.xp/(G.lvl*100)*100+'%';$('avatar').textContent=G.av;
+  const l=Math.round(luck()*100);$('luck').textContent=l?`✨ +${l}% payouts`:'';
+  const n=G.q.filter(q=>q.p>=need(q)).length,b=$('qbadge');b.textContent=n;b.style.display=n?'block':'none'}
+function ev(k){G.q.forEach(q=>{if(q.k!=k||q.p>=need(q))return;q.p++;if(q.p>=need(q))toast('Quest complete: '+qd(q)[1]+'. Claim it at the Quest Board.','good')});hud();save()}
+function addXp(n){G.xp+=n*(G.buff.r>0?G.buff.x:1);while(G.xp>=G.lvl*100){G.xp-=G.lvl*100;G.lvl++;bal+=G.lvl*100;toast(`Level up! You are level ${G.lvl}. Bonus: ${fmt(G.lvl*100)} chips`,'good');coins(14)}}
+let S='';
+function sheet(k){S=k;const m={shop:['Vltava Boutique','Charms, credit and couture. Perks last forever.'],bar:['The Gilded Pour','A drink gives a short boost. Cheers.'],quest:['Quest Board','Finish tasks for chips and XP. Every claim makes the next one harder and richer.']}[k];
+  $('sheet-t').textContent=m[0];$('sheet-s').textContent=m[1];renderSheet();$('sheet').classList.add('open')}
+function renderSheet(){const el=$('sheet-b');
+  if(S=='quest'){el.innerHTML=G.q.map((q,i)=>{const d=qd(q),n=need(q),ok=q.p>=n;return `<div class="quest${ok?' done':''}"><div><h4>${d[1]}</h4><p>${d[2].replace('{n}',n)}. Reward: ${fmt(d[4]*q.m)} chips</p></div><button class="gold" data-claim="${i}" ${ok?'':'disabled'}>${ok?'Claim':q.p+' / '+n}</button><div class="qb"><i style="width:${q.p/n*100}%"></i></div></div>`}).join('');return}
+  el.innerHTML='<div class="items">'+(S=='shop'?SHOP:BAR).map(it=>{const own=has(it.id);
+    const btn=own?(it.av?`<button data-eq="${it.id}" ${G.av==it.e?'disabled':''}>${G.av==it.e?'Equipped':'Equip'}</button>`:'<button disabled>Owned</button>'):`<button class="gold" data-buy="${it.id}" ${bal<it.p?'disabled':''}>${fmt(it.p)} chips</button>`;
+    return `<div class="item"><span class="ie">${it.e}</span><h4>${it.n}</h4><p>${it.d}</p>${btn}</div>`}).join('')+'</div>'}
+$('sheet').onclick=e=>{if(e.target.id=='sheet'||e.target.closest('[data-x]'))return $('sheet').classList.remove('open');
+  const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+  if(d.buy){const it=[...SHOP,...BAR].find(x=>x.id==d.buy);if(bal<it.p)return toast('Not enough chips. Try the bank.','warn');
+    bal-=it.p;if(it.buff){G.buff={...it.buff};toast(`${it.n}: ${it.d}`,'good')}else{G.owned.push(it.id);if(it.av)G.av=it.e;toast('Purchased '+it.n,'good')}ev('buy')}
+  if(d.eq)G.av=SHOP.find(x=>x.id==d.eq).e;
+  if(d.claim!==undefined){const q=G.q[+d.claim],rw=qd(q)[4]*q.m;if(q.p<need(q))return;bal+=rw;q.p=0;q.m=Math.min(q.m*2,8);addXp(rw/5);toast(`Reward: ${fmt(rw)} chips`,'good');coins(14)}
+  render();save();renderSheet()};
 render();checkBroke();
-/* tabs */
-[['roulette','Roulette'],['blackjack','Blackjack'],['slots','Slots'],['horses','Horse Racing']].forEach(([id,t],i)=>{
-  const b=document.createElement('button');b.textContent=t;b.onclick=()=>{document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id==id));[...$('tabs').children].forEach(c=>c.classList.toggle('on',c==b))};
-  $('tabs').appendChild(b);if(!i)b.click()});
+/* lobby navigation */
+const ROOM={roulette:1,blackjack:1,slots:1,horses:1},MAIN=document.querySelector('main');
+document.querySelectorAll('main section').forEach(s=>{const b=document.createElement('button');b.className='back';b.textContent='← Back to the casino floor';b.onclick=()=>MAIN.classList.remove('open');s.prepend(b)});
+function enter(id){document.querySelectorAll('main section').forEach(s=>s.classList.toggle('on',s.id==id));MAIN.style.top=document.querySelector('header').offsetHeight+'px';MAIN.classList.add('open');MAIN.scrollTop=0}
+const go=e=>{const v=e.target.closest('[data-v]');if(!v)return;const k=v.dataset.v;if(ROOM[k])enter(k);else if(k=='bank')openBank();else sheet(k)};
+$('lobby').onclick=go;$('lobby').onkeydown=e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();go(e)}};
+const NM=['Anna','Tom','Elena','Marco','Jana','Viktor','Sofia','Hugo'],GM=['Roulette','Blackjack','the Slots','the Races'];
+const wins=Array.from({length:12},()=>`🏆 ${NM[rnd(8)]} won ${fmt(200+rnd(9000))} on ${GM[rnd(4)]}`).join('  ✦  ');
+$('tk').innerHTML=`<span>${wins}</span><span>${wins}</span>`;
+let jp=1284903;setInterval(()=>{jp+=rnd(40)+5;$('jp').textContent=fmt(jp)},900);
 /* chips (shared selection) */
 ['rchips','bchips','schips','hchips'].forEach(id=>{
   [10,50,100,500].forEach(v=>{const c=document.createElement('button');c.className='chip'+(v==10?' sel':'');c.dataset.v=v;c.textContent=v;
@@ -94,7 +126,7 @@ $('spin').onclick=async()=>{
   let ret=0;for(const k in bets)ret+=bets[k]*win(k,n);
   $('hub').textContent=n;hist.unshift(n);hist.length=Math.min(hist.length,14);
   $('hist').innerHTML=hist.map(x=>`<span style="background:${hex[col(x)]}">${x}</span>`).join('');
-  setBal(ret);$('rmsg').textContent=ret?`${n} ${col(n)=='g'?'green':col(n)=='r'?'red':'black'}. ${ret>stake?'You win +'+(ret-stake):'Returned '+ret}.`:`${n}. Bets lost.`;
+  setBal(ret);if(ret>stake)ev('rwin');$('rmsg').textContent=ret?`${n} ${col(n)=='g'?'green':col(n)=='r'?'red':'black'}. ${ret>stake?'You win +'+(ret-stake):'Returned '+ret}.`:`${n}. Bets lost.`;
   bets={};draw();spinning=false;tick()};
 /* ===== BLACKJACK ===== */
 let deck,P,D,bj=0,play=false;
@@ -104,7 +136,7 @@ const cardEl=(c,hide)=>hide?'<div class="card back"></div>':`<div class="card ${
 function show(hide){$('ph').innerHTML=P.map(c=>cardEl(c)).join('');$('dh').innerHTML=D.map((c,i)=>cardEl(c,hide&&i==1)).join('');
   $('ps').textContent='Total: '+val(P);$('ds').textContent=hide?'Showing: '+val([D[0]]):'Total: '+val(D);$('bbet').textContent=bj?'Bet: '+bj:''}
 function end(msg,mult){play=false;['hit','stand','dbl'].forEach(i=>$(i).disabled=true);$('deal').disabled=false;show(false);
-  if(mult)setBal(Math.round(bj*mult));$('bmsg').textContent=msg;tick()}
+  if(mult)setBal(Math.round(bj*mult));if(mult>1)ev('bjwin');$('bmsg').textContent=msg;tick()}
 $('deal').onclick=()=>{if(bal<sel)return $('bmsg').textContent='Not enough chips. Visit the bank.';
   if(!deck||deck.length<15)newDeck();bj=sel;setBal(-bj);P=[deck.pop(),deck.pop()];D=[deck.pop(),deck.pop()];play=true;$('deal').disabled=true;$('bmsg').textContent='Your move.';show(true);
   if(val(P)==21)return end(val(D)==21?'Both have blackjack – push.':'Blackjack! Pays 3:2.',val(D)==21?1:2.5);
@@ -126,7 +158,7 @@ $('pull').onclick=async()=>{if(busy)return;if(bal<sel)return $('smsg').textConte
   for(let i=0;i<3;i++){await wait(800+i*500);els[i].classList.remove('spin');els[i].textContent=SYM[res[i]][0]}
   clearInterval(iv);let m=0;
   if(res[0]==res[1]&&res[1]==res[2])m=SYM[res[0]][1];else if(res.filter(x=>x==0).length>=2)m=2;
-  if(m){setBal(bet*m);$('smsg').textContent=`You win ${bet*m} chips (${m}×)!`}else $('smsg').textContent='No win this time. Try again.';busy=false;tick()};
+  if(m){setBal(bet*m);ev('swin');$('smsg').textContent=`You win ${bet*m} chips (${m}×)!`}else $('smsg').textContent='No win this time. Try again.';busy=false;tick()};
 /* ===== DOSTIHY ===== */
 const HS=[['Silver Bolt',2.5,1.0],['River Gale',3,.96],['Golden Horseshoe',4,.92],['Black Orchid',5,.88],['Old Earl',8,.8],['Little Longshot',12,.72]];
 let pick=-1,racing=false;
@@ -143,6 +175,6 @@ $('go').onclick=()=>{if(racing||pick<0)return;if(bal<sel)return $('hmsg').textCo
     const lead=pos.findIndex(p=>p>=100);
     if(lead<0)return requestAnimationFrame(f);
     const win=pos.indexOf(Math.max(...pos));
-    if(win==pick){setBal(Math.round(bet*HS[pick][1]));$('hmsg').textContent=`Winner: ${HS[win][0]}. You win ${Math.round(bet*HS[pick][1])} chips!`}
+    if(win==pick){ev('hwin');setBal(Math.round(bet*HS[pick][1]));$('hmsg').textContent=`Winner: ${HS[win][0]}. You win ${Math.round(bet*HS[pick][1])} chips!`}
     else $('hmsg').textContent=`Winner: ${HS[win][0]}. Your horse did not place. Bet lost.`;
     racing=false;$('go').disabled=false;tick()})()};
