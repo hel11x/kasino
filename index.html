@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Vltava Casino – Gaming Floor</title>
-<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,500;0,800;1,500&family=DM+Sans:wght@400;600&display=swap" rel="stylesheet">
+<title>Casino Alpine Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header>
-  <h1 class="logo">Casino <i>Vltava</i></h1>
+  <h1 class="logo"><svg class="mark" viewBox="0 0 48 48"><path d="M2 42 19 12l9 15 5-7 13 22z" fill="#c9a24b"/><path d="M19 12l-5 9 5-3 4 3z" fill="#fff3b0"/><circle cx="38" cy="10" r="4" fill="#ffd76a"/></svg><span>Casino <i>Alpine Pro</i></span></h1>
   <div class="me"><span class="av" id="avatar">🙂</span><div class="lv"><b id="lvl">Level 1</b><div class="xpbar"><div id="xpf"></div></div><small id="luck"></small></div></div>
-  <div class="wallet"><div class="bank"><span>Chips</span><b id="bal">1000</b></div><div class="bank" id="debtbox"><span>Debt</span><b id="debt">0</b></div><button class="gold" id="openbank">🏦 Bank</button></div>
+  <div class="wallet"><div class="bank"><i class="pchip"></i><div class="bv"><span>Chips</span><b id="bal">1000</b></div></div><div class="bank" id="debtbox"><i class="note">!</i><div class="bv"><span>Debt</span><b id="debt">0</b><em class="dbar"><u id="dbar"></u></em></div></div><button class="gold" id="openbank">🏦 Bank</button></div>
 </header>
 <div class="ticker"><div id="tk"></div></div>
 <div class="lobby" id="lobby"><div class="floor">
@@ -24,7 +24,7 @@
 <div class="plaza"><div class="jp">Progressive jackpot<b id="jp">1,284,903</b></div><div class="fount">⛲<i class="rip"></i><i class="rip" style="animation-delay:1s"></i></div>
 <span class="pt" style="--d:17s;--y:22%">🚶</span><span class="pt" style="--d:13s;--y:68%">💃</span><span class="pt" style="--d:21s;--y:80%">🕴️</span><span class="pt" style="--d:15s;--y:45%">🤵</span></div>
 <div class="venue v-roul" data-v="roulette" tabindex="0" role="button"><b class="sign">Roulette Salon</b><div class="art"><i class="rw"></i></div><small>Red, black or your lucky number</small></div>
-<div class="venue v-race" data-v="horses" tabindex="0" role="button"><b class="sign">Velká Chuchle Racetrack</b><div class="art"><div class="rt"><i>🐎</i><i>🐎</i><i>🐎</i></div></div><small>Back a horse</small></div>
+<div class="venue v-race" data-v="horses" tabindex="0" role="button"><b class="sign">Alpine Downs Racetrack</b><div class="art"><div class="rt"><i>🐎</i><i>🐎</i><i>🐎</i></div></div><small>Back a horse</small></div>
 <div class="venue v-shop" data-v="shop" tabindex="0" role="button"><b class="sign">Boutique</b><div class="art">👗🎩💎</div><small>Charms, credit and couture</small></div>
 <div class="venue v-quest" data-v="quest" tabindex="0" role="button"><b class="sign">Quest Board</b><span class="badge" id="qbadge"></span><div class="art">📜</div><small>Tasks for chips and XP</small></div>
 </div></div>
@@ -49,30 +49,50 @@
 </section>
 <!-- BLACKJACK -->
 <section id="blackjack">
-  <h2>Blackjack</h2>
+<div class="modes"><button class="gold" data-mode="solo">Solo table</button><button data-mode="mp">Multiplayer</button></div>
+<div id="solo"><svg class="arc" viewBox="0 0 600 90"><path id="ba" d="M30 84Q300-34 570 84" fill="none"/><text><textPath href="#ba" startOffset="50%" text-anchor="middle">Blackjack pays 3 to 2 · Dealer draws to 16 and stands on 17</textPath></text></svg><h2>Blackjack</h2>
   <p style="margin:4px 0">Blackjack pays 3:2. The dealer draws to 17. Double down is allowed on your first two cards.</p>
   <h3>Dealer</h3><div class="hand" id="dh"></div><div class="score" id="ds"></div>
   <h3>You</h3><div class="hand" id="ph"></div><div class="score" id="ps"></div>
   <div class="msg" id="bmsg">Choose a chip size and deal.</div>
   <div class="chips" id="bchips"></div>
   <div class="row"><button class="gold" id="deal">Deal</button><button id="hit" disabled>Hit</button><button id="stand" disabled>Stand</button><button id="dbl" disabled>Double</button><span id="bbet"></span></div>
+</div>
+<div id="mpbox" hidden>
+  <h2>Multiplayer Blackjack</h2>
+  <div id="mp-join">
+    <p>Host a table and share the 4-letter code, or enter a friend's code to sit down. Up to 4 players.</p>
+    <div class="row"><input id="mp-name" maxlength="12" placeholder="Your name"></div>
+    <div class="row"><button class="gold" id="mp-host">Host a table</button></div>
+    <div class="row"><input id="mp-code" maxlength="4" placeholder="Code" style="width:110px;text-transform:uppercase"><button id="mp-go">Join table</button></div>
+    <p class="cap" id="mp-st"></p>
+  </div>
+  <div id="mp-table" hidden>
+    <div class="mpbar"><span>Table code<b id="mp-c"></b></span><span id="mp-n"></span></div>
+    <h3>Dealer</h3><div class="hand" id="mp-d"></div>
+    <div class="seats" id="mp-seats"></div>
+    <div class="msg" id="mp-msg"></div>
+    <div class="chips" id="mchips"></div>
+    <div class="row"><button class="gold" id="mp-bet">Place bet</button><button id="mp-hit">Hit</button><button id="mp-stand">Stand</button><button class="gold" id="mp-deal" hidden>Deal</button><button class="gold" id="mp-next" hidden>Next round</button><button id="mp-leave">Leave table</button></div>
+  </div>
+</div>
 </section>
 <!-- SLOTY -->
 <section id="slots">
   <h2 style="text-align:center;margin-bottom:16px">Golden Slot Machine</h2>
-  <div class="machine">
+  <div class="machine"><div class="marq">★ Alpine Gold ★</div><div class="lever" id="lever"><i></i></div>
     <div class="reels"><div class="reel" id="r0">🍒</div><div class="reel" id="r1">🔔</div><div class="reel" id="r2">💎</div></div>
     <div class="msg" id="smsg" style="text-align:center">Pull the lever.</div>
     <div class="chips" id="schips" style="justify-content:center"></div>
     <div class="row" style="justify-content:center"><button class="gold" id="pull" style="padding:14px 40px;font-size:18px">Spin</button></div>
-    <table class="pay" id="pay"></table>
+    <table class="pay" id="pay"></table><div class="tray"></div>
   </div>
 </section>
 <!-- DOSTIHY -->
 <section id="horses">
-  <h2>Horse Racing – Velká Chuchle</h2>
+  <h2>Horse Racing – Alpine Downs</h2>
   <p style="margin:4px 0">Pick a horse and bet on the winner. Payout = stake × odds.</p>
-  <div class="track" id="track"></div>
+  <div class="stand" id="stand"></div><div class="track" id="track"></div>
   <div class="msg" id="hmsg">Pick a horse.</div>
   <div class="odds" id="odds"></div>
   <div class="chips" id="hchips"></div>
@@ -83,7 +103,7 @@
 <div class="modal" id="sheet" role="dialog" aria-modal="true"><div class="panel"><div class="mh"><h2 id="sheet-t"></h2><button data-x aria-label="Close">✕</button></div><p class="cap" id="sheet-s"></p><div id="sheet-b"></div></div></div>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 <div class="modal" id="bank" role="dialog" aria-modal="true" aria-label="Bank"><div class="panel">
-  <div class="mh"><h2>Vltava National Bank</h2><button data-x aria-label="Close">✕</button></div>
+  <div class="mh"><h2>Alpine National Bank</h2><button data-x aria-label="Close">✕</button></div>
   <div class="stats" id="bk-sum"></div>
   <div class="barwrap"><div id="bk-bar"></div></div><p class="cap">Credit used</p>
   <h3>Loan offers</h3><div class="offers" id="bk-offers"></div>
@@ -95,6 +115,7 @@
 <div class="modal" id="bust"><div class="panel bust"><h2>Account closed</h2>
   <p>The bank has closed your account. You have no chips and no credit left.</p>
   <p>Outstanding debt: <b id="bust-d"></b> chips.</p><p class="cap">There is no restart. The casino keeps your record.</p></div></div>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
