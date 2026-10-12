@@ -51,7 +51,7 @@ $('mcash').onclick=()=>{if(M&&M.on&&M.open.size)mend(1)};mdraw();
 /* ---------- CRASH ---------- */
 let C=null;const chs=[];
 function cdraw(m,bad){const k=$('cg'),g=k.getContext('2d'),W=k.width,H=k.height,t=Math.log(m)/.12,T=Math.max(8,t*1.15),Y=Math.max(2,m*1.2),P=(a,b)=>[44+a/T*(W-70),H-30-(b-1)/(Y-1)*(H-60)];g.clearRect(0,0,W,H);
- g.font='13px Outfit,sans-serif';g.fillStyle='#ffffff99';g.strokeStyle='#ffffff1c';g.lineWidth=1;
+ g.font='13px Inter,sans-serif';g.fillStyle='#ffffff99';g.strokeStyle='#ffffff1c';g.lineWidth=1;
  for(let i=0;i<=5;i++){const v=1+(Y-1)*i/5,y=P(0,v)[1];g.beginPath();g.moveTo(44,y);g.lineTo(W-10,y);g.stroke();g.fillText(v.toFixed(1)+'×',4,y+4);const x=P(T*i/5,1)[0];g.beginPath();g.moveTo(x,10);g.lineTo(x,H-30);g.stroke();g.fillText((T*i/5).toFixed(0)+'s',x-8,H-10)}
  const c=bad?'#ff5a4a':'#ffd76a',pts=[];for(let i=0;i<=80;i++){const a=t*i/80;pts.push(P(a,Math.exp(.12*a)))}
  const e=pts[80],f=g.createLinearGradient(0,0,0,H);f.addColorStop(0,c+'66');f.addColorStop(1,c+'00');

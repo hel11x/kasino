@@ -40,7 +40,7 @@ function tick(){rounds++;ev('round');addXp(10);if(G.buff.r>0&&!--G.buff.r)toast(
   if(rounds%INT_EVERY==0&&loans.length){let t=0;loans.forEach(l=>{const i=Math.max(1,Math.round(l.owed*l.r/100));l.owed+=i;t+=i});log('Interest charged',-t);toast(`The bank charged ${fmt(t)} chips in interest`,'warn')}
   render();save();checkBroke()}
 const QT=[['rwin','Spin Doctor','Win {n} roulette spin(s)',3,300],['bjwin','Card Shark','Win {n} blackjack hand(s)',2,300],['swin','Lucky Streak','Hit {n} winning slot spin(s)',2,250],['hwin','Pole Position','Back {n} winning F1 car(s)',1,400],['round','Regular','Play {n} rounds anywhere',10,350],['repaid','Clean Slate','Fully repay {n} loan(s)',1,500],['buy','Window Shopper','Buy {n} item(s) at the boutique or bar',1,150]];
-const SHOP=[{id:'foot',n:"Rabbit's Foot",e:'🐇',p:350,d:'+5% on every payout',luck:.05},{id:'clover',n:'Four-Leaf Clover',e:'🍀',p:900,d:'+10% on every payout',luck:.1},{id:'dice',n:'Golden Dice',e:'🎲',p:2200,d:'+15% on every payout',luck:.15},{id:'card',n:'Platinum Card',e:'💳',p:1200,d:'+2,000 bank credit limit'},{id:'tux',n:'Tuxedo',e:'🤵',p:500,d:'Look the part',av:1},{id:'gown',n:'Evening Gown',e:'💃',p:500,d:'Look the part',av:1},{id:'crown',n:'Crown',e:'👑',p:3000,d:'High-roller status',av:1}];
+const SHOP=[{id:'foot',n:"Rabbit's Foot",e:'🐇',p:350,d:'+5% on every payout',luck:.05},{id:'clover',n:'Four-Leaf Clover',e:'🍀',p:900,d:'+10% on every payout',luck:.1},{id:'dice',n:'Golden Dice',e:'🎲',p:2200,d:'+15% on every payout',luck:.15},{id:'star',n:'Wishing Star',e:'🌟',p:6000,d:'+20% on every payout',luck:.2},{id:'card',n:'Platinum Card',e:'💳',p:1200,d:'+2,000 bank credit limit'},{id:'tux',n:'Tuxedo',e:'🤵',p:500,d:'Look the part',av:1},{id:'gown',n:'Evening Gown',e:'💃',p:500,d:'Look the part',av:1},{id:'crown',n:'Crown',e:'👑',p:3000,d:'High-roller status',av:1}];
 const BAR=[{id:'esp',n:'Espresso',e:'☕',p:30,d:'2× XP for 5 rounds',buff:{r:5,l:0,x:2}},{id:'mart',n:'Lucky Martini',e:'🍸',p:80,d:'+20% payouts for 5 rounds',buff:{r:5,l:.2,x:1}},{id:'champ',n:'Champagne',e:'🍾',p:250,d:'+30% payouts and 2× XP for 3 rounds',buff:{r:3,l:.3,x:2}}];
 const has=id=>G.owned.includes(id),qd=q=>QT.find(x=>x[0]==q.k),need=q=>qd(q)[3]*q.m,luck=()=>SHOP.reduce((a,i)=>a+(has(i.id)&&i.luck||0),0)+(G.buff.r>0?G.buff.l:0);
 if(!G.q)G.q=QT.map(d=>({k:d[0],p:0,m:1}));
@@ -86,7 +86,7 @@ const col=n=>n==0?'g':RED.has(n)?'r':'b',hex={r:'#a3202f',b:'#151515',g:'#0a7a3c
 (function(){const c=$('wheel').getContext('2d'),W=640,m=W/2,st=2*Math.PI/37;
   c.translate(m,m);c.fillStyle='#3b2410';c.beginPath();c.arc(0,0,m,0,7);c.fill();
   ORD.forEach((n,i)=>{const a=-Math.PI/2+i*st-st/2;c.fillStyle=hex[col(n)];c.beginPath();c.moveTo(0,0);c.arc(0,0,m-18,a,a+st);c.fill();c.strokeStyle='#c9a24b';c.lineWidth=2;c.stroke();
-    c.save();c.rotate(a+st/2+Math.PI/2);c.fillStyle='#fff';c.font='bold 24px Outfit, sans-serif';c.textAlign='center';c.fillText(n,0,-(m-52));c.restore()});
+    c.save();c.rotate(a+st/2+Math.PI/2);c.fillStyle='#fff';c.font='bold 24px Inter, sans-serif';c.textAlign='center';c.fillText(n,0,-(m-52));c.restore()});
   c.fillStyle='#2a1a0c';c.beginPath();c.arc(0,0,m*.5,0,7);c.fill();c.strokeStyle='#c9a24b';c.lineWidth=4;c.stroke();
   c.lineWidth=2;c.beginPath();c.arc(0,0,m-3,0,7);c.stroke();c.beginPath();c.arc(0,0,m-18,0,7);c.stroke();
   for(let k=0;k<8;k++){c.save();c.rotate(k*Math.PI/4+Math.PI/8);c.translate(0,-(m-10));c.rotate(Math.PI/4);c.fillStyle='#e3bf6a';c.fillRect(-5,-5,10,10);c.restore()}

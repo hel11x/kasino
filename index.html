@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Casino Alpine Pro</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700;800&family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Great+Vibes&family=Inter:wght@400;600;800&family=Cormorant+Garamond:wght@600;700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Great+Vibes&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="extras.css">
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -120,7 +120,7 @@
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="script.js"></script>
 <script src="extras.js"></script>
-<script src="logging.js"></script>
+<script src="profile.js"></script>
 <div class="modal open" id="age" role="alertdialog" aria-modal="true" aria-labelledby="age-t"><div class="panel agep"><div class="a18">18+</div><h2 id="age-t">Age Verification</h2><p>This site simulates casino games and is for adults only. You must be 18 or older (or the legal gambling age where you live) to enter.</p><ul><li>Chips only: no real money is wagered or won.</li><li>Gambling can be addictive. Play responsibly and set limits.</li><li>Need help? National Problem Gambling Helpline (US): 1-800-522-4700.</li></ul><div class="row"><button class="gold" id="age-y">I am 18 or older – Enter</button><button id="age-n">I am under 18 – Leave</button></div></div></div>
 <script>document.getElementById('age-y').onclick=()=>document.getElementById('age').classList.remove('open');document.getElementById('age-n').onclick=()=>{document.querySelector('#age .panel').innerHTML='<div class="a18">18+</div><h2>Sorry</h2><p>You must be 18 or older to enter. Please close this page.</p>'};</script>
 </body>
