@@ -14,7 +14,7 @@ function render(){hud();const box=$('bal').closest('.bank');
   if(bal!==shown){box.classList.remove('up','down');void box.offsetWidth;box.classList.add(bal>shown?'up':'down')}
   count($('bal'),shown,bal);shown=bal;$('debt').textContent=fmt(debt());$('debtbox').classList.toggle('owing',debt()>0);
   if($('bank').classList.contains('open'))renderBank()}
-function setBal(d){if(d>0)d=Math.round(d*(1+luck()));bal+=d;if(d>=100)coins(Math.min(14,d/50|0));render();save()}
+function setBal(d){if(d>0)d=Math.round(d*(1+luck())*(G.code?G.code.m:1));bal+=d;if(d>=100)coins(Math.min(14,d/50|0));render();save()}
 function renderBank(){const d=debt(),pct=Math.min(100,d/limit()*100),next=INT_EVERY-rounds%INT_EVERY;
   const rt=!d?['Excellent','#5fd38d']:pct<35?['Good','#9ad35f']:pct<70?['Fair','#e3bf6a']:['Poor','#e5604d'];
   $('bk-sum').innerHTML=[['Chips',fmt(bal)],['Total debt',fmt(d)],['Net worth',fmt(bal-d)],['Credit available',fmt(avail())+' / '+fmt(limit())]].map(([a,b])=>`<div class="stat"><span>${a}</span><b>${b}</b></div>`).join('')+`<div class="stat"><span>Credit rating</span><b style="color:${rt[1]}">${rt[0]}</b></div>`;
@@ -45,7 +45,7 @@ const BAR=[{id:'esp',n:'Espresso',e:'☕',p:30,d:'2× XP for 5 rounds',buff:{r:5
 const has=id=>G.owned.includes(id),qd=q=>QT.find(x=>x[0]==q.k),need=q=>qd(q)[3]*q.m,luck=()=>SHOP.reduce((a,i)=>a+(has(i.id)&&i.luck||0),0)+(G.buff.r>0?G.buff.l:0);
 if(!G.q)G.q=QT.map(d=>({k:d[0],p:0,m:1}));
 function hud(){$('dbar').style.width=Math.min(100,debt()/limit()*100)+'%';$('lvl').textContent='Level '+G.lvl;$('xpf').style.width=G.xp/(G.lvl*100)*100+'%';$('avatar').textContent=G.av;
-  const l=Math.round(luck()*100);$('luck').textContent=l?`✨ +${l}% payouts`:'';
+  const l=Math.round(luck()*100),cm=G.code?G.code.m:1;$('luck').textContent=(l?`✨ +${l}% payouts`:'')+(cm>1?` 🎟️ ×${cm}`:'');
   const n=G.q.filter(q=>q.p>=need(q)).length,b=$('qbadge');b.textContent=n;b.style.display=n?'block':'none'}
 function ev(k){G.q.forEach(q=>{if(q.k!=k||q.p>=need(q))return;q.p++;if(q.p>=need(q))toast('Quest complete: '+qd(q)[1]+'. Claim it at the Quest Board.','good')});hud();save()}
 function addXp(n){G.xp+=n*(G.buff.r>0?G.buff.x:1);while(G.xp>=G.lvl*100){G.xp-=G.lvl*100;G.lvl++;bal+=G.lvl*100;toast(`Level up! You are level ${G.lvl}. Bonus: ${fmt(G.lvl*100)} chips`,'good');coins(14)}}
@@ -76,9 +76,14 @@ const wins=Array.from({length:12},()=>`🏆 ${NM[rnd(8)]} won ${fmt(200+rnd(9000
 $('tk').innerHTML=`<span>${wins}</span><span>${wins}</span>`;
 let jp=1284903;setInterval(()=>{jp+=rnd(40)+5;$('jp').textContent=fmt(jp)},900);
 /* chips (shared selection) */
-['rchips','bchips','schips','hchips','mchips'].forEach(id=>{
-  [10,50,100,500].forEach(v=>{const c=document.createElement('button');c.className='chip'+(v==10?' sel':'');c.dataset.v=v;c.textContent=v;
-    c.onclick=()=>{sel=v;document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('sel',+x.dataset.v==v))};$(id).appendChild(c)})});
+const CHV=[10,50,100,500,1000,5000,10000,50000,100000];let MAXON=false;
+const chipLab=v=>v>=1000?v/1000+'K':v;
+function chipSel(){document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('sel',MAXON?x.dataset.v=='max':+x.dataset.v==sel))}
+function mkChips(id){[...CHV,'max'].forEach(v=>{const c=document.createElement('button'),m=v=='max';c.className='chip'+(m?' max':'');c.dataset.v=v;c.textContent=m?'MAX':chipLab(v);if(m)c.title='Bet all your chips';
+  c.onclick=()=>{MAXON=m;sel=m?Math.max(1,bal):v;chipSel()};$(id).appendChild(c)});chipSel()}
+['rchips','bchips','schips','hchips','mchips'].forEach(mkChips);
+/* Max stays on: re-reads the balance at the moment a round or a roulette bet starts */
+document.addEventListener('click',e=>{if(!MAXON)return;const t=e.target.closest('#deal,#pull,#go,#mp-bet,#mstart,#cgo,#hldeal,.board button,.out button');if(t)sel=Math.max(1,bal-(t.closest('#roulette')?tot():0))},true);
 /* ===== RULETA ===== */
 const ORD=[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
 const RED=new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
@@ -196,7 +201,7 @@ function hostDeal(){if(MS.ph!='bet'||!MS.players.some(p=>p.bet))return;MS.rid++;
   MS.players.forEach(p=>{p.res=null;p.hand=p.bet?[hdraw(),hdraw()]:[];p.st=p.bet?(val(p.hand)==21?'bj':'play'):'out'});MS.ph='play';MS.turn=-1;next();push()}
 function hostMsg(id,m,c){if(!m||typeof m!='object')return;const P=MS.players,me=P.find(p=>p.id==id);
   if(m.t=='join'&&!me){if(P.length>=4||MS.ph!='bet'){c.send({t:'state',s:{...MS,players:[]}});setTimeout(()=>c.close(),300);return}P.push({id,name:String(m.name||'Player').slice(0,12),bet:0,hand:[],st:'wait'})}
-  else if(m.t=='bet'&&me&&MS.ph=='bet'&&!me.bet&&[10,50,100,500].includes(m.v))me.bet=m.v;
+  else if(m.t=='bet'&&me&&MS.ph=='bet'&&!me.bet&&Number.isInteger(m.v)&&m.v>=10)me.bet=m.v;
   else if(m.t=='hit'&&me&&MS.ph=='play'&&P[MS.turn]==me){me.hand.push(hdraw());const v=val(me.hand);if(v>21){me.st='bust';next()}else if(v==21){me.st='stand';next()}}
   else if(m.t=='stand'&&me&&MS.ph=='play'&&P[MS.turn]==me){me.st='stand';next()}
   push()}

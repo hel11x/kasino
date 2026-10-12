@@ -8,8 +8,7 @@ const jget=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))||d}catch(e){re
 /* ---------- helpers: rooms and chip bars ---------- */
 function room(id,title,html){const s=mk(`<section id="${id}"><h2>${title}</h2>${html}</section>`),b=mk('<button class="back">← Back to the casino floor</button>');
   b.onclick=()=>MAIN.classList.remove('open');s.prepend(b);MAIN.appendChild(s);ROOM[id]=1;return s}
-function chipbar(id){[10,50,100,500].forEach(v=>{const c=document.createElement('button');c.className='chip'+(v==sel?' sel':'');c.dataset.v=v;c.textContent=v;
-  c.onclick=()=>{sel=v;document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('sel',+x.dataset.v==v))};$(id).appendChild(c)})}
+function chipbar(id){mkChips(id)}
 const broke='Not enough chips. Visit the bank.';
 
 /* ---------- passive income (boutique items) ---------- */
