@@ -45,7 +45,7 @@ const BAR=[{id:'esp',n:'Espresso',e:'☕',p:30,d:'2× XP for 5 rounds',buff:{r:5
 const has=id=>G.owned.includes(id),qd=q=>QT.find(x=>x[0]==q.k),need=q=>qd(q)[3]*q.m,luck=()=>SHOP.reduce((a,i)=>a+(has(i.id)&&i.luck||0),0)+(G.buff.r>0?G.buff.l:0);
 if(!G.q)G.q=QT.map(d=>({k:d[0],p:0,m:1}));
 function hud(){$('dbar').style.width=Math.min(100,debt()/limit()*100)+'%';$('lvl').textContent='Level '+G.lvl;$('xpf').style.width=G.xp/(G.lvl*100)*100+'%';$('avatar').textContent=G.av;
-  const l=Math.round(luck()*100),cm=G.code?G.code.m:1;$('luck').textContent=(l?`✨ +${l}% payouts`:'')+(cm>1?` 🎟️ ×${cm}`:'');
+  const l=Math.round(luck()*100),cm=G.code?G.code.m:1;$('luck').textContent=(l?`✨ +${l}% payouts`:'')+(G.code?` 🎟️ ×${G.code.t||cm} luck`:'');
   const n=G.q.filter(q=>q.p>=need(q)).length,b=$('qbadge');b.textContent=n;b.style.display=n?'block':'none'}
 function ev(k){G.q.forEach(q=>{if(q.k!=k||q.p>=need(q))return;q.p++;if(q.p>=need(q))toast('Quest complete: '+qd(q)[1]+'. Claim it at the Quest Board.','good')});hud();save()}
 function addXp(n){G.xp+=n*(G.buff.r>0?G.buff.x:1);while(G.xp>=G.lvl*100){G.xp-=G.lvl*100;G.lvl++;bal+=G.lvl*100;toast(`Level up! You are level ${G.lvl}. Bonus: ${fmt(G.lvl*100)} chips`,'good');coins(14)}}
@@ -119,7 +119,7 @@ function win(k,n){if(k[0]=='n')return n==+k.slice(1)?36:0;if(!n)return 0;
 $('spin').onclick=async()=>{
   if(spinning||!tot())return $('rmsg').textContent='Place a bet first.';
   spinning=true;const stake=tot();setBal(-stake);$('rmsg').textContent='The wheel is spinning…';$('hub').textContent='…';
-  const i=rnd(37),n=ORD[i],rel=-Math.PI/2+i*2*Math.PI/37,w0=rot*Math.PI/180,Wt=2*Math.PI*(4+Math.random()),K=2*Math.PI*9;
+  const i=LK.pocket(rnd(37),stake),n=ORD[i],rel=-Math.PI/2+i*2*Math.PI/37,w0=rot*Math.PI/180,Wt=2*Math.PI*(4+Math.random()),K=2*Math.PI*9;
   const T=window.matchMedia('(prefers-reduced-motion:reduce)').matches?1200:7500,t0=performance.now();
   await new Promise(done=>{(function f(now){
     const p=Math.min((now-t0)/T,1),w=w0+Wt*(1-Math.pow(1-p,3)),q=Math.max(0,(p-.6)/.4);
@@ -133,6 +133,12 @@ $('spin').onclick=async()=>{
   $('hist').innerHTML=hist.map(x=>`<span style="background:${hex[col(x)]}">${x}</span>`).join('');
   setBal(ret);if(ret>stake)ev('rwin');$('rmsg').textContent=ret?`${n} ${col(n)=='g'?'green':col(n)=='r'?'red':'black'}. ${ret>stake?'You win +'+(ret-stake):'Returned '+ret}.`:`${n}. Bets lost.`;
   bets={};draw();spinning=false;tick()};
+/* ===== LUCK ENGINE: a code's luck level (0-1) nudges outcomes in every game ===== */
+const LK={l:()=>(G.code&&G.code.l)||0,roll:k=>Math.random()<Math.min(.92,LK.l()*k),
+ card(h,d,bust){if(!LK.roll(bust?.35:1))return d.pop();let b=-1,bv=-1;d.forEach((c,i)=>{const v=val([...h,c]);if(bust?(v>21&&bv<22):(v<=21&&v>bv)){b=i;bv=v}});return b>=0?d.splice(b,1)[0]:d.pop()},
+ pocket(i,stake){if(!LK.roll(.55))return i;const rt=j=>{let r=0;for(const k in bets)r+=bets[k]*win(k,ORD[j]);return r},all=[...Array(37).keys()];let c=all.filter(j=>rt(j)>stake);if(!c.length)c=all.filter(j=>rt(j)>0);return c.length?c[rnd(c.length)]:i},
+ slots(res){if(!LK.roll(.12))return res;const r=Math.random();if(r<.07)return[5,5,5];if(r<.2)return[4,4,4];const w=[0,0,0,1,1,1,2,2,3],s=w[rnd(w.length)];return[s,s,s]},
+ cp:c=>LK.roll(.6)?Math.min(500,c*(1.6+Math.random()*1.8)):c};
 /* ===== BLACKJACK ===== */
 let deck,P,D,bj=0,play=false;
 const newDeck=()=>{deck=[];for(const s of '♠♥♦♣')for(const r of 'A23456789TJQK')deck.push({r,s});for(let i=deck.length-1;i>0;i--){const j=rnd(i+1);[deck[i],deck[j]]=[deck[j],deck[i]]}};
@@ -143,21 +149,21 @@ function show(hide){$('ph').innerHTML=P.map(c=>cardEl(c)).join('');$('dh').inner
 function end(msg,mult){play=false;['hit','stand','dbl'].forEach(i=>$(i).disabled=true);$('deal').disabled=false;show(false);
   if(mult)setBal(Math.round(bj*mult));if(mult>1)ev('bjwin');$('bmsg').textContent=msg;tick()}
 $('deal').onclick=()=>{if(bal<sel)return $('bmsg').textContent='Not enough chips. Visit the bank.';
-  if(!deck||deck.length<15)newDeck();bj=sel;setBal(-bj);P=[deck.pop(),deck.pop()];D=[deck.pop(),deck.pop()];play=true;$('deal').disabled=true;$('bmsg').textContent='Your move.';show(true);
+  if(!deck||deck.length<15)newDeck();bj=sel;setBal(-bj);P=[];P.push(LK.card(P,deck));P.push(LK.card(P,deck));D=[deck.pop(),deck.pop()];play=true;$('deal').disabled=true;$('bmsg').textContent='Your move.';show(true);
   if(val(P)==21)return end(val(D)==21?'Both have blackjack – push.':'Blackjack! Pays 3:2.',val(D)==21?1:2.5);
   $('hit').disabled=$('stand').disabled=false;$('dbl').disabled=bal<bj};
-$('hit').onclick=()=>{P.push(deck.pop());$('dbl').disabled=true;show(true);if(val(P)>21)end('Bust. You lose.',0);else if(val(P)==21)$('stand').click()};
-async function dealer(){show(false);while(val(D)<17){await wait(600);D.push(deck.pop());show(false)}
+$('hit').onclick=()=>{P.push(LK.card(P,deck));$('dbl').disabled=true;show(true);if(val(P)>21)end('Bust. You lose.',0);else if(val(P)==21)$('stand').click()};
+async function dealer(){show(false);while(val(D)<17){await wait(600);D.push(LK.card(D,deck,1));show(false)}
   const p=val(P),d=val(D);if(d>21)end('Dealer busts. You win!',2);else if(p>d)end('You win '+p+' to '+d+'.',2);else if(p<d)end('Dealer wins '+d+' to '+p+'.',0);else end('Push – bet returned.',1)}
 $('stand').onclick=()=>{['hit','stand','dbl'].forEach(i=>$(i).disabled=true);dealer()};
-$('dbl').onclick=()=>{setBal(-bj);bj*=2;P.push(deck.pop());show(true);if(val(P)>21)end('Bust. You lose the doubled bet.',0);else $('stand').click()};
+$('dbl').onclick=()=>{setBal(-bj);bj*=2;P.push(LK.card(P,deck));show(true);if(val(P)>21)end('Bust. You lose the doubled bet.',0);else $('stand').click()};
 /* ===== SLOTY ===== */
 const SYM=[['🍒',5],['🍋',8],['🔔',15],['⭐',25],['7️⃣',50],['💎',100]];
 $('pay').innerHTML=SYM.map(([s,m])=>`<tr><td>${s} ${s} ${s}</td><td>${m}× bet</td></tr>`).join('')+'<tr><td>🍒 🍒 any</td><td>2× bet</td></tr>';
 let busy=false;
 $('pull').onclick=async()=>{if(busy)return;if(bal<sel)return $('smsg').textContent='Not enough chips. Visit the bank.';
   busy=true;const bet=sel;setBal(-bet);$('lever').classList.remove('pull');void $('lever').offsetWidth;$('lever').classList.add('pull');document.querySelectorAll('.reel').forEach(e=>e.classList.remove('win'));$('smsg').textContent='Reels are spinning…';
-  const res=[0,1,2].map(()=>{const r=Math.random();return r<.3?0:r<.55?1:r<.75?2:r<.88?3:r<.96?4:5}),els=[0,1,2].map(i=>$('r'+i));
+  const res=LK.slots([0,1,2].map(()=>{const r=Math.random();return r<.3?0:r<.55?1:r<.75?2:r<.88?3:r<.96?4:5})),els=[0,1,2].map(i=>$('r'+i));
   els.forEach(e=>e.classList.add('spin'));
   const iv=setInterval(()=>els.forEach(e=>{if(e.classList.contains('spin'))e.textContent=SYM[rnd(6)][0]}),70);
   for(let i=0;i<3;i++){await wait(800+i*500);els[i].classList.remove('spin');els[i].textContent=SYM[res[i]][0]}
@@ -176,7 +182,7 @@ $('odds').onclick=e=>{const b=e.target.closest('button');if(!b||racing)return;pi
 $('go').onclick=()=>{if(racing||pick<0)return;if(bal<sel)return $('hmsg').textContent='Not enough chips. Visit the bank.';
   racing=true;$('track').classList.add('racing');const bet=sel;setBal(-bet);$('go').disabled=true;$('hmsg').textContent='Lights out and away we go!';
   const hs=[...document.querySelectorAll('.h')],w=$('track').clientWidth-70,pos=HS.map(()=>0);let done=false;
-  (function f(){HS.forEach((h,i)=>pos[i]+=(Math.random()*1.1+.2)*h[2]*.9);
+  (function f(){HS.forEach((h,i)=>pos[i]+=(Math.random()*1.1+.2)*h[2]*.9*(i==pick?1+LK.l()*.75:1));
     hs.forEach((e,i)=>e.style.left=Math.min(pos[i]/100,1)*w+'px');
     const lead=pos.findIndex(p=>p>=100);
     if(lead<0)return requestAnimationFrame(f);
@@ -190,19 +196,19 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 let peer=null,conns=[],hostConn=null,isHost=false,MS=null,myId='host',settled=-1,hostDeck=null;
 const mine=()=>MS&&MS.players.find(p=>p.id==myId),stt=m=>$('mp-st').textContent=m;
 function freshDeck(){const d=[];for(const s of '♠♥♦♣')for(const r of 'A23456789TJQK')d.push({r,s});for(let i=d.length-1;i>0;i--){const j=rnd(i+1);[d[i],d[j]]=[d[j],d[i]]}return d}
-const hdraw=()=>{if(hostDeck.length<8)hostDeck=freshDeck();return hostDeck.pop()};
+const hdraw=(h,dl)=>{if(hostDeck.length<8)hostDeck=freshDeck();return h?LK.card(h,hostDeck,dl):hostDeck.pop()};
 function mpLeave(){try{peer&&peer.destroy()}catch(e){}peer=null;conns=[];hostConn=null;MS=null;isHost=false;$('mp-join').hidden=false;$('mp-table').hidden=true}
 function push(){conns.forEach(c=>c.open&&c.send({t:'state',s:MS}));mpRender()}
 const act=m=>isHost?hostMsg('host',m):hostConn.send(m);
 function next(){const P=MS.players;let i=MS.turn+1;while(i<P.length&&P[i].st!='play')i++;MS.turn=i;if(i>=P.length)dealerPlay()}
-function dealerPlay(){MS.hide=false;const alive=MS.players.some(p=>p.st=='stand'||p.st=='bj');while(alive&&val(MS.dealer)<17)MS.dealer.push(hdraw());const d=val(MS.dealer);
+function dealerPlay(){MS.hide=false;const alive=MS.players.some(p=>p.st=='stand'||p.st=='bj');while(alive&&val(MS.dealer)<17)MS.dealer.push(hdraw(MS.dealer,1));const d=val(MS.dealer);
   MS.players.forEach(p=>{if(p.st=='out')return;const v=val(p.hand);p.res=p.st=='bust'?0:p.st=='bj'?(d==21&&MS.dealer.length==2?1:2.5):d>21||v>d?2:v==d?1:0});MS.ph='done'}
 function hostDeal(){if(MS.ph!='bet'||!MS.players.some(p=>p.bet))return;MS.rid++;MS.dealer=[hdraw(),hdraw()];MS.hide=true;
-  MS.players.forEach(p=>{p.res=null;p.hand=p.bet?[hdraw(),hdraw()]:[];p.st=p.bet?(val(p.hand)==21?'bj':'play'):'out'});MS.ph='play';MS.turn=-1;next();push()}
+  MS.players.forEach(p=>{p.res=null;p.hand=p.bet?(p.id=='host'?(h=>{h.push(hdraw(h));h.push(hdraw(h));return h})([]):[hdraw(),hdraw()]):[];p.st=p.bet?(val(p.hand)==21?'bj':'play'):'out'});MS.ph='play';MS.turn=-1;next();push()}
 function hostMsg(id,m,c){if(!m||typeof m!='object')return;const P=MS.players,me=P.find(p=>p.id==id);
   if(m.t=='join'&&!me){if(P.length>=4||MS.ph!='bet'){c.send({t:'state',s:{...MS,players:[]}});setTimeout(()=>c.close(),300);return}P.push({id,name:String(m.name||'Player').slice(0,12),bet:0,hand:[],st:'wait'})}
   else if(m.t=='bet'&&me&&MS.ph=='bet'&&!me.bet&&Number.isInteger(m.v)&&m.v>=10)me.bet=m.v;
-  else if(m.t=='hit'&&me&&MS.ph=='play'&&P[MS.turn]==me){me.hand.push(hdraw());const v=val(me.hand);if(v>21){me.st='bust';next()}else if(v==21){me.st='stand';next()}}
+  else if(m.t=='hit'&&me&&MS.ph=='play'&&P[MS.turn]==me){me.hand.push(hdraw(id=='host'?me.hand:0));const v=val(me.hand);if(v>21){me.st='bust';next()}else if(v==21){me.st='stand';next()}}
   else if(m.t=='stand'&&me&&MS.ph=='play'&&P[MS.turn]==me){me.st='stand';next()}
   push()}
 function drop(id){if(!MS)return;const P=MS.players,p=P.find(x=>x.id==id);conns=conns.filter(c=>c.peer!=id);if(!p)return;p.left=true;
@@ -219,7 +225,7 @@ function mpRender(){if(!MS)return;const me=mine();
   $('mp-bet').disabled=!(MS.ph=='bet'&&!me.bet);$('mp-hit').disabled=$('mp-stand').disabled=!turn;
   $('mp-deal').hidden=!(isHost&&MS.ph=='bet');$('mp-deal').disabled=!P.some(p=>p.bet);$('mp-next').hidden=!(isHost&&MS.ph=='done');
   $('mp-msg').textContent=MS.ph=='bet'?(me.bet?(isHost?'Deal when everyone is ready.':'Waiting for the host to deal…'):'Choose a chip and place your bet.'):MS.ph=='play'?(turn?'Your move.':'Waiting for '+(P[MS.turn]?P[MS.turn].name:'the dealer')+'…'):(me.res==null?'Round over.':me.res>1?'You win +'+Math.round(me.bet*(me.res-1))+' chips!':me.res==1?'Push – your bet is returned.':'You lose −'+me.bet+' chips.');
-  if(MS.ph=='done'&&me.bet&&settled!=MS.rid){settled=MS.rid;const rw=Math.round(me.bet*me.res);if(rw)setBal(rw);if(me.res>1)ev('bjwin');tick()}}
+  if(MS.ph=='done'&&me.bet&&settled!=MS.rid){settled=MS.rid;const rw=Math.round(me.bet*me.res);if(rw)setBal(rw);else if(LK.l()){const cb=Math.round(me.bet*LK.l()*.5);if(cb){setBal(cb);toast('Luck softened the loss: +'+fmt(cb)+' chips','good')}}if(me.res>1)ev('bjwin');tick()}}
 $('mp-host').onclick=()=>{if(!window.Peer)return stt('Multiplayer needs an internet connection (PeerJS did not load).');
   const code=Array.from({length:4},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ'[rnd(24)]).join(''),name=$('mp-name').value.trim()||'Host';stt('Opening your table…');
   peer=new Peer('alpinepro-bj-'+code);peer.on('error',e=>stt('Could not open the table ('+e.type+'). Try again.'));
