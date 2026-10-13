@@ -43,7 +43,7 @@ function mend(cash){M.on=0;const k=M.open.size,x=mm(k,M.n);
   mdraw(1);$('mstart').disabled=false;$('mcash').disabled=true;tick()}
 $('mstart').onclick=()=>{if(M&&M.on)return;if(bal<sel)return $('mmsg').textContent=broke;const n=+$('mn').value,m=new Set();while(m.size<n)m.add(rnd(25));
   M={on:1,m,open:new Set(),bet:sel,n};setBal(-sel);$('mstart').disabled=true;$('mcash').disabled=true;mdraw();minfo()};
-$('mg').onclick=e=>{const b=e.target.closest('button');if(!b||!M||!M.on)return;const i=+b.dataset.i;if(M.m.has(i)){if(G.code&&G.code.id=='SECRET'&&Math.random()<.75){M.m.delete(i);let j;do j=rnd(25);while(j==i||M.m.has(j)||M.open.has(j));M.m.add(j);toast('🍀 Luck moved a mine away','good')}else return mend(0)}
+$('mg').onclick=e=>{const b=e.target.closest('button');if(!b||!M||!M.on)return;const i=+b.dataset.i;if(M.m.has(i)){if(G.code&&G.code.id=='SECRET'&&Math.random()<.99){M.m.delete(i);let j;do j=rnd(25);while(j==i||M.m.has(j)||M.open.has(j));M.m.add(j);toast('🍀 Luck moved a mine away','good')}else return mend(0)}
   M.open.add(i);if(M.open.size==25-M.n)return mend(1);mdraw();$('mcash').disabled=false;minfo()};
 $('mcash').onclick=()=>{if(M&&M.on&&M.open.size)mend(1)};mdraw();
 
