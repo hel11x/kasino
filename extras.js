@@ -43,7 +43,7 @@ function mend(cash){M.on=0;const k=M.open.size,x=mm(k,M.n);
   mdraw(1);$('mstart').disabled=false;$('mcash').disabled=true;tick()}
 $('mstart').onclick=()=>{if(M&&M.on)return;if(bal<sel)return $('mmsg').textContent=broke;const n=+$('mn').value,m=new Set();while(m.size<n)m.add(rnd(25));
   M={on:1,m,open:new Set(),bet:sel,n};setBal(-sel);$('mstart').disabled=true;$('mcash').disabled=true;mdraw();minfo()};
-$('mg').onclick=e=>{const b=e.target.closest('button');if(!b||!M||!M.on)return;const i=+b.dataset.i;if(M.m.has(i)){if(LK.roll(.5)){M.m.delete(i);let j;do j=rnd(25);while(j==i||M.m.has(j)||M.open.has(j));M.m.add(j)}else return mend(0)}
+$('mg').onclick=e=>{const b=e.target.closest('button');if(!b||!M||!M.on)return;const i=+b.dataset.i;if(M.m.has(i))return mend(0);
   M.open.add(i);if(M.open.size==25-M.n)return mend(1);mdraw();$('mcash').disabled=false;minfo()};
 $('mcash').onclick=()=>{if(M&&M.on&&M.open.size)mend(1)};mdraw();
 
@@ -66,7 +66,7 @@ function cend(cash){const c=C;C=null;$('cgo').disabled=false;$('ccash').disabled
   if(cash){const p=Math.round(c.bet*c.m);setBal(p);st.crash=Math.max(st.crash||0,c.m);$('cx').textContent=c.m.toFixed(2)+'×';$('cmsg').textContent=`Cashed out at ×${c.m.toFixed(2)}: +${fmt(p)} chips. It crashed at ×${c.cp.toFixed(2)}.`}
   else{$('cx').textContent=c.cp.toFixed(2)+'×';$('cx').className='cx bust';$('cmsg').textContent=`Crashed at ×${c.cp.toFixed(2)}. Bet lost.`}tick()}
 $('cgo').onclick=()=>{if(C)return;if(bal<sel)return $('cmsg').textContent=broke;
-  const r=Math.random(),cp=LK.cp(Math.max(1,Math.min(500,Math.floor(97/(1-r))/100))),au=parseFloat($('cauto').value)||0,t0=performance.now();
+  const r=Math.random(),cp=Math.max(1,Math.min(500,Math.floor(97/(1-r))/100)),au=parseFloat($('cauto').value)||0,t0=performance.now();
   setBal(-sel);C={bet:sel,cp,m:1};$('cgo').disabled=true;$('ccash').disabled=false;$('cx').className='cx';$('cmsg').textContent='Lift off…';$('rk').textContent='🚀';cdraw(1);
   (function f(t){if(!C)return;C.m=Math.exp(.12*(t-t0)/1000);
     if(C.m>=cp)return cend(0);if(au>=1.01&&C.m>=au){C.m=au;return cend(1)}
@@ -83,8 +83,7 @@ function hupd(){const[p,q]=hp();$('hlh').innerHTML=cardEl(H.c);$('hldeal').disab
   $('hlup').textContent=p?`Higher ×${(.97/p).toFixed(2)}`:'Higher';$('hldn').textContent=q?`Lower ×${(.97/q).toFixed(2)}`:'Lower';
   $('hlup').disabled=!H.on||!p;$('hldn').disabled=!H.on||!q;$('hlcash').disabled=!H.on||H.k<1}
 $('hldeal').onclick=()=>{if(H&&H.on)return;if(bal<sel)return $('hlmsg').textContent=broke;H={on:1,c:dr(),bet:sel,pot:sel,k:0};setBal(-sel);$('hlmsg').textContent='Higher or lower?';hupd()};
-const hlN=up=>{let n=dr();if(LK.roll(.55))for(let t=0;t<30;t++){const x=dr();if(up?rv(x)>rv(H.c):rv(x)<rv(H.c)){n=x;break}}return n};
-function hg(up){if(!H||!H.on)return;const[p,q]=hp(),mu=.97/(up?p:q),n=hlN(up),ok=up?rv(n)>rv(H.c):rv(n)<rv(H.c);H.c=n;
+function hg(up){if(!H||!H.on)return;const[p,q]=hp(),mu=.97/(up?p:q),n=dr(),ok=up?rv(n)>rv(H.c):rv(n)<rv(H.c);H.c=n;
   if(ok){H.pot*=mu;H.k++;st.hl=Math.max(st.hl||0,H.k);$('hlmsg').textContent=`Correct! Pot: ${fmt(H.pot)} chips (streak ${H.k}).`}
   else{H.on=0;$('hlmsg').textContent='Wrong. Bet lost.';tick()}hupd()}
 $('hlup').onclick=()=>hg(1);$('hldn').onclick=()=>hg(0);
@@ -97,7 +96,7 @@ room('luckywheel','Lucky Wheel',`<p>One free spin every 10 minutes. No bet neede
 <div class="msg" id="wcd" style="text-align:center"></div><div class="row" style="justify-content:center"><button class="gold" id="wspin">Spin</button></div>`);
 const wleft=()=>Math.max(0,6e5-(now()-(G.wheelAt||0)));
 function wfin(){const p=G.wprize;if(!p)return;G.wprize=0;setBal(p);st.spins=(st.spins||0)+1;wsp=0;toast(`Lucky Wheel: +${fmt(p)} chips`,'good');save()}
-$('wspin').onclick=()=>{if(wsp||wleft())return;const wp=()=>{let r=Math.random()*100,i=0;for(;i<WP.length-1;i++)if((r-=WP[i][1])<0)break;return i};let i=wp();if(LK.roll(.8))i=Math.max(i,wp());
+$('wspin').onclick=()=>{if(wsp||wleft())return;let r=Math.random()*100,i=0;for(;i<WP.length-1;i++)if((r-=WP[i][1])<0)break;
   G.wheelAt=now();G.wprize=WP[i][0];save();wsp=1;$('wspin').disabled=true;
   const fin=(360-(i*45+22.5)+360)%360;wrot+=1800+((fin-wrot%360)+360)%360;$('whl').style.transform=`rotate(${wrot}deg)`;
   $('wcd').textContent='Spinning…';setTimeout(wfin,4700)};
